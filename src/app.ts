@@ -1,23 +1,34 @@
-import express from 'express';
-import connectDB from './infrastructure/database/MongoDBConfig';
-import studentRoutes from './interfaces/routes/StudentRoutes';
+import express from "express";
+import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 import cors from 'cors';
 
+import studentRoutes from "./presentation/routes/StudentRoutes";
+import tutorRoutes from "./presentation/routes/TutorRoutes";
+import adminRoutes from "./presentation/routes/AdminRoutes";
+
+dotenv.config();
+
 const app = express();
-
-// MongoDB Connection
-connectDB();
-
-// Middleware
 app.use(express.json());
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+const corsOptions = {
+  origin: `${process.env.CORSURL}`,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  credentials: true
+};
 
-// Routes
-app.use('/api/students', studentRoutes);
+app.use(cors(corsOptions));
 
-// Start Server
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.use(cookieParser());
+
+app.use("/api/students", studentRoutes);
+app.use("/api/tutors", tutorRoutes);
+app.use("/api/admin", adminRoutes);
+
+mongoose.connect(process.env.MONGO_URI!)
+  .then(() => {
+    app.listen(`${process.env.PORT}`, () => console.log(`Server running on port ${process.env.PORT}`));
+  })
+  .catch((error) => console.error("MongoDB connection error: ", error));

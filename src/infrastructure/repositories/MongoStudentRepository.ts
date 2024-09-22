@@ -1,24 +1,31 @@
-import { StudentRepository } from "../../domain/repositories/StudentRepository";
+import { StudentRepository } from "../../domain/interfaces/StudentRepository";
 import { Student } from "../../domain/entities/Student";
-import { StudentModel } from "../models/StudentModel";
+import { StudentModel } from "../database/models/StudentModel";
 
 export class MongoStudentRepository implements StudentRepository {
-    async save(student: Student): Promise<void> {
-        const studentDoc = new StudentModel(student)
-        await studentDoc.save()
-    }
+  async createStudent(student: Student): Promise<Student> {
+    const newStudent = new StudentModel(student);
+    await newStudent.save();
+    return newStudent.toObject() as Student;
+  }
 
-    async findByEmail(email: string): Promise<Student | null> {
-        const studentDoc = await StudentModel.findOne({email})
-        if(!studentDoc) return null
+  async findStudentByEmail(email: string): Promise<Student | null> {
+    const student = await StudentModel.findOne({ email }).lean().exec();
+    return student as Student | null
+  }
 
-        return new Student(
-            studentDoc.id,
-            studentDoc.name,
-            studentDoc.email,
-            studentDoc.mobile,
-            studentDoc.password,
-            studentDoc.createdAt
-        )
-    }
+  async updateStudent(student: Student): Promise<Student> {
+    await StudentModel.updateOne({ email: student.email }, student);
+    return student;
+  }
+
+  async getAllStudents(): Promise<Student[]> {
+    const students = await StudentModel.find().lean().exec();
+    return students as Student[];
+  }
+
+  async findStudentById(id: string): Promise<Student | null> {
+    const student = await StudentModel.findById(id).lean();
+    return student as Student | null;
+  }
 }
