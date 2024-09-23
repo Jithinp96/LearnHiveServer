@@ -5,6 +5,7 @@ const tutorRoutes = Router();
 const tutorController = new TutorController();
 
 tutorRoutes.post("/auth", tutorController.register);
+tutorRoutes.post("/resend-otp", tutorController.resendOTP);
 tutorRoutes.post("/otp-verify", tutorController.verifyOTP);
 
 tutorRoutes.post('/login', tutorController.login);

@@ -5,6 +5,9 @@ import { VerifyOTPTutor } from "../../application/useCases/VerifyOTP";
 import { MongoTutorRepository } from "../../infrastructure/repositories/MongoTutorRepository";
 import { LoginTutorUseCase } from "../../application/useCases/tutorUseCases/TutorLogin";
 import { JWTService } from "../../shared/utils/JWTService";
+import { generateOTP } from "../../shared/utils/OTPService";
+import { OTPModel } from "../../infrastructure/database/models/OTPModel";
+import { sendOTPEmail } from "../../infrastructure/services/EmailService";
 
 export class TutorController {
     private tutorRepo: MongoTutorRepository;
@@ -37,6 +40,25 @@ export class TutorController {
           res.status(400).json({ error });
         }
     };
+
+    public resendOTP = async(req: Request, res: Response) => {
+        try {
+          const email = req.cookies.OTPEmail;
+          const otp = generateOTP();
+          console.log("Tutor OTP: ", otp);
+    
+          const dbOTP = await OTPModel.findOne({ email })
+          await OTPModel.deleteOne({ _id: dbOTP?._id });
+    
+          const expiredAt = new Date(Date.now() + 60000);
+          await OTPModel.create({ email: email, otp, expiredAt });
+    
+          await sendOTPEmail(email, otp);
+          res.status(201).json({ message: "OTP Resent successful." });
+        } catch (error) {
+          res.status(500).json({ error: "An error occurred during otp resend" });
+        }
+      }
     
     //TUTOR OTP VERIFICATION
     public verifyOTP = async (req: Request, res: Response) => {
