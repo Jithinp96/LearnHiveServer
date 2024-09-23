@@ -1,21 +1,24 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import bcrypt from 'bcryptjs';
 
 import { RegisterStudent } from "../../application/useCases/studentUseCases/RegisterStudent";
 import { VerifyOTP } from "../../application/useCases/VerifyOTP";
 import { MongoStudentRepository } from "../../infrastructure/repositories/MongoStudentRepository";
-import { generateAccessToken, generateRefreshToken } from "../../shared/utils/JWTService";
+import { JWTService } from "../../shared/utils/JWTService";
+import { LoginStudentUseCase } from "../../application/useCases/studentUseCases/StudentLogin";
 
 export class StudentController {
   private studentRepo: MongoStudentRepository;
   private registerStudent: RegisterStudent;
   private verifyOTPUseCase: VerifyOTP;
+  private loginStudentUseCase: LoginStudentUseCase;
+  private jwtService: JWTService
 
   constructor() {
     this.studentRepo = new MongoStudentRepository();
+    this.jwtService= new JWTService()
     this.registerStudent = new RegisterStudent(this.studentRepo);
     this.verifyOTPUseCase = new VerifyOTP(this.studentRepo);
+    this.loginStudentUseCase = new LoginStudentUseCase(this.studentRepo, this.jwtService)
   }
 
   // Register a new student
@@ -79,54 +82,26 @@ export class StudentController {
   };
 
   //LOGIN STUDENT
-  public login = async (req: Request, res: Response) => {
+  public login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
-
+    // console.log("Inside login in student controller", email, password);
+    
     try {
-      const student = await this.studentRepo.findStudentByEmail(email);
-      console.log(student);
-      
+        const { accessToken, refreshToken, student } = await this.loginStudentUseCase.execute(email, password);
+        console.log(accessToken);
+        console.log(refreshToken);
+        console.log(student);
+        
+        // Set the tokens in cookies
+        JWTService.setTokens(res, accessToken, refreshToken);
 
-      if(!student) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      if(student.isBlocked) {
-        return res.status(403).json({ message: "Your account is blocked" })
-      }
-
-      if(!student.isVerified) {
-        return res.status(403).json({ message: "Your account is not verified" })
-      }
-
-      const isMatch = await bcrypt.compare(password, student.password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      const accessToken = generateAccessToken(student.studentId);
-      const refreshToken = generateRefreshToken(student.studentId);
-
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        // maxAge: 3600 * 1000, // 1 hour
-      });
-
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        // maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
-      res.status(200).json({
-        message: "Login Successfull",
-        student,
-      })
-
+        res.status(200).json({
+            message: "Login successful",
+            student,
+        });
     } catch (error) {
-      console.error("Login error: ", error);
-      res.status(500).json({ message: "Server error" });
+        console.error("Login error:", error);
+        res.status(401).json({  error });
     }
   }
 }

@@ -1,5 +1,3 @@
-// import { Response } from "express";
-
 import { JWTService } from "../../../infrastructure/services/JWTService";
 
 export class AdminLogin {

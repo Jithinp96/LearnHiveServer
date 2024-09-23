@@ -20,8 +20,8 @@ export class AdminController {
 
         try {
             const { accessToken, refreshToken } = await this.adminLogin.execute(email, password);
-            console.log("accessToken in admin controller: ", accessToken);
-            console.log("refreshToken in admin controller: ", refreshToken);
+            // console.log("accessToken in admin controller: ", accessToken);
+            // console.log("refreshToken in admin controller: ", refreshToken);
             
             JWTService.setTokens(res, accessToken, refreshToken);
             res.status(200).json({ success: true, message: 'Login Successful', accessToken })
