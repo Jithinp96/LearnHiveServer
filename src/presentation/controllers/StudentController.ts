@@ -6,6 +6,9 @@ import { MongoStudentRepository } from "../../infrastructure/repositories/MongoS
 import { JWTService } from "../../shared/utils/JWTService";
 import { LoginStudentUseCase } from "../../application/useCases/studentUseCases/StudentLogin";
 import { LogoutStudentUseCase } from "../../application/useCases/studentUseCases/LogoutStudent";
+import { generateOTP } from "../../shared/utils/OTPService";
+import { OTPModel } from "../../infrastructure/database/models/OTPModel";
+import { sendOTPEmail } from "../../infrastructure/services/EmailService";
 
 export class StudentController {
   private studentRepo: MongoStudentRepository;
@@ -40,6 +43,25 @@ export class StudentController {
       res.status(500).json({ error: "An error occurred during registration" });
     }
   };
+
+  public resendOTP = async(req: Request, res: Response) => {
+    try {
+      const email = req.cookies.OTPEmail;
+      const otp = generateOTP();
+      console.log("Student OTP: ", otp);
+
+      const dbOTP = await OTPModel.findOne({ email })
+      await OTPModel.deleteOne({ _id: dbOTP?._id });
+
+      const expiredAt = new Date(Date.now() + 60000);
+      await OTPModel.create({ email: email, otp, expiredAt });
+
+      await sendOTPEmail(email, otp);
+      res.status(201).json({ message: "OTP Resent successful." });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred during otp resend" });
+    }
+  }
 
   // Verify OTP for a student
   public verifyOTP = async (req: Request, res: Response) => {
@@ -107,4 +129,5 @@ export class StudentController {
     const role = req.params.role;
     return LogoutStudentUseCase.execute(req, res, role);
   }
+
 }
