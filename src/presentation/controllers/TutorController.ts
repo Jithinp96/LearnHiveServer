@@ -3,18 +3,25 @@ import { Request, Response } from "express";
 import { RegisterTutor } from "../../application/useCases/tutorUseCases/RegisterTutor";
 import { VerifyOTPTutor } from "../../application/useCases/VerifyOTP";
 import { MongoTutorRepository } from "../../infrastructure/repositories/MongoTutorRepository";
+import { LoginTutorUseCase } from "../../application/useCases/tutorUseCases/TutorLogin";
+import { JWTService } from "../../shared/utils/JWTService";
 
 export class TutorController {
     private tutorRepo: MongoTutorRepository;
     private registerTutor: RegisterTutor;
-    private verifyOTPUseCase: VerifyOTPTutor
+    private verifyOTPUseCase: VerifyOTPTutor;
+    private loginTutorUseCase: LoginTutorUseCase;
+    private jwtService: JWTService;
 
     constructor() {
         this.tutorRepo = new MongoTutorRepository();
         this.registerTutor = new RegisterTutor(this.tutorRepo);
         this.verifyOTPUseCase = new VerifyOTPTutor(this.tutorRepo);
+        this.jwtService = new JWTService();
+        this.loginTutorUseCase = new LoginTutorUseCase(this.tutorRepo, this.jwtService);
     }
 
+    //REGISTER TUTOR
     public register = async (req: Request, res: Response): Promise<void> => {
         try {
           const { name, email, mobile, password } = req.body;
@@ -29,9 +36,10 @@ export class TutorController {
         } catch (error) {
           res.status(400).json({ error });
         }
-      };
+    };
     
-      public verifyOTP = async (req: Request, res: Response) => {
+    //TUTOR OTP VERIFICATION
+    public verifyOTP = async (req: Request, res: Response) => {
         const { otp } = req.body;
         const email = req.cookies.OTPEmail;
     
@@ -69,4 +77,21 @@ export class TutorController {
             });
         }
     };
+
+    public login = async (req: Request, res: Response): Promise<void> => {
+        const { email, password } = req.body;
+
+        try {
+            const { accessToken, refreshToken, tutor } = await this.loginTutorUseCase.execute(email, password)
+            JWTService.setTokens(res, accessToken, refreshToken, tutor.role);
+
+            res.status(200).json({
+                message: "Tutor Login Successful",
+                tutor,
+            })
+        } catch (error) {
+            console.error("Login error:", error);
+            res.status(401).json({  error });
+        }
+    }
 }

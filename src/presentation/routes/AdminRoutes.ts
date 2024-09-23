@@ -3,7 +3,7 @@ import express from "express";
 import { AdminController } from "../controllers/adminController";
 import { AdminLogin } from "../../application/useCases/adminUseCases/AdminLogin";
 import { RefreshTokenController } from "../controllers/RefreshTokenController";
-import { JWTService } from "../../infrastructure/services/JWTService";
+import { JWTService } from "../../shared/utils/JWTService";
 
 const adminRoutes = express.Router();
 
@@ -17,7 +17,7 @@ const adminController = new AdminController(adminLogin);
 adminRoutes.post('/login', (req, res) => adminController.login(req, res));
 adminRoutes.post('/refresh', (req, res) => refreshTokenController.refresh(req, res));
 adminRoutes.post('/logout', (req, res) => {
-    JWTService.clearTokens(res);
+    JWTService.clearTokens(res, 'admin');
     res.status(200).json({ message: 'Logged out successfully' });
 });
 

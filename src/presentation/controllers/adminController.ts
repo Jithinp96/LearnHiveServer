@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { AdminLogin } from "../../application/useCases/adminUseCases/AdminLogin";
-import { JWTService } from "../../infrastructure/services/JWTService";
+import { JWTService } from "../../shared/utils/JWTService";
 import { GetStudentsList } from "../../application/useCases/adminUseCases/GetStudentsList";
 import { MongoStudentRepository } from "../../infrastructure/repositories/MongoStudentRepository";
 
@@ -20,10 +20,8 @@ export class AdminController {
 
         try {
             const { accessToken, refreshToken } = await this.adminLogin.execute(email, password);
-            // console.log("accessToken in admin controller: ", accessToken);
-            // console.log("refreshToken in admin controller: ", refreshToken);
             
-            JWTService.setTokens(res, accessToken, refreshToken);
+            JWTService.setTokens(res, accessToken, refreshToken, 'admin');
             res.status(200).json({ success: true, message: 'Login Successful', accessToken })
         } catch (error) {
             console.error("Error during admin login:", error);

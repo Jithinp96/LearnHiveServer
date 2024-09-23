@@ -7,4 +7,6 @@ const tutorController = new TutorController();
 tutorRoutes.post("/auth", tutorController.register);
 tutorRoutes.post("/otp-verify", tutorController.verifyOTP);
 
+tutorRoutes.post('/login', tutorController.login);
+
 export default tutorRoutes;

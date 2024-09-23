@@ -5,6 +5,7 @@ import { VerifyOTP } from "../../application/useCases/VerifyOTP";
 import { MongoStudentRepository } from "../../infrastructure/repositories/MongoStudentRepository";
 import { JWTService } from "../../shared/utils/JWTService";
 import { LoginStudentUseCase } from "../../application/useCases/studentUseCases/StudentLogin";
+import { LogoutStudentUseCase } from "../../application/useCases/studentUseCases/LogoutStudent";
 
 export class StudentController {
   private studentRepo: MongoStudentRepository;
@@ -84,16 +85,12 @@ export class StudentController {
   //LOGIN STUDENT
   public login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
-    // console.log("Inside login in student controller", email, password);
-    
+ 
     try {
         const { accessToken, refreshToken, student } = await this.loginStudentUseCase.execute(email, password);
-        console.log(accessToken);
-        console.log(refreshToken);
         console.log(student);
         
-        // Set the tokens in cookies
-        JWTService.setTokens(res, accessToken, refreshToken);
+        JWTService.setTokens(res, accessToken, refreshToken, student.role);
 
         res.status(200).json({
             message: "Login successful",
@@ -103,5 +100,11 @@ export class StudentController {
         console.error("Login error:", error);
         res.status(401).json({  error });
     }
+  }
+
+  //LOGOUT STUDENT
+  public logout = async(req: Request, res: Response) => {
+    const role = req.params.role;
+    return LogoutStudentUseCase.execute(req, res, role);
   }
 }

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { JWTService } from "../../infrastructure/services/JWTService";
+import { JWTService } from "../../shared/utils/JWTService";
 
 export class RefreshTokenController {
   public async refresh(req: Request, res: Response): Promise<any> {
@@ -13,12 +13,12 @@ export class RefreshTokenController {
       const payload = JWTService.verifyRefreshToken(refreshToken);
       const newAccessToken = JWTService.generateAccessToken(payload);
 
-      JWTService.setTokens(res, newAccessToken, refreshToken);
+      // JWTService.setTokens(res, newAccessToken, refreshToken);
       
       res.status(200).json({ message: 'Token refreshed', accessToken: newAccessToken });
     } catch (error) {
       console.error("Error during token refresh:", error);
-      JWTService.clearTokens(res);
+      // JWTService.clearTokens(res);
       res.status(403).json({ error: 'Invalid or expired refresh token' });
     }
   };

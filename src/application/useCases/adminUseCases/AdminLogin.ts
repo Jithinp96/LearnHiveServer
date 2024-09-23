@@ -1,4 +1,4 @@
-import { JWTService } from "../../../infrastructure/services/JWTService";
+import { JWTService } from "../../../shared/utils/JWTService";
 
 export class AdminLogin {
     private jwtService: JWTService;
