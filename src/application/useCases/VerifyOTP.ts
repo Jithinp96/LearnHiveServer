@@ -1,9 +1,9 @@
-import { StudentRepository } from "../../domain/interfaces/StudentRepository";
-import { TutorRepository } from "../../domain/interfaces/TutorRepository";
+import { IStudentRepository } from "../../domain/interfaces/IStudentRepository";
+import { ITutorRepository } from "../../domain/interfaces/ITutorRepository";
 import { OTPModel } from "../../infrastructure/database/models/OTPModel";
 
 export class VerifyOTP {
-    constructor(private studentRepo: StudentRepository) {}
+    constructor(private studentRepo: IStudentRepository) {}
 
     async execute(email:string, otp: number): Promise<boolean> {
         try {
@@ -37,7 +37,7 @@ export class VerifyOTP {
 }
 
 export class VerifyOTPTutor {
-    constructor(private tutorRepo: TutorRepository) {}
+    constructor(private tutorRepo: ITutorRepository) {}
 
     async execute(email: string, otp: number): Promise<boolean> {
         try {

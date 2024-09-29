@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cors from 'cors';
+import morgan from "morgan";
 
 import studentRoutes from "./presentation/routes/StudentRoutes";
 import tutorRoutes from "./presentation/routes/TutorRoutes";
@@ -23,8 +24,10 @@ app.use(cors(corsOptions));
 
 app.use(cookieParser());
 
+app.use(morgan('dev'));
+
 app.use("/api/students", studentRoutes);
-app.use("/api/tutors", tutorRoutes);
+app.use("/api/tutor", tutorRoutes);
 app.use("/api/admin", adminRoutes);
 
 mongoose.connect(process.env.MONGO_URI!)

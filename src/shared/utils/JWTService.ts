@@ -14,12 +14,22 @@ export class JWTService {
         })
     }
 
+    static generateForgotToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_FORGOT_PASSWORD_SECRET as string, {
+            expiresIn: '15m'  // Token expires in 15 minutes
+        });
+    }
+
     static verifyAccessToken(token: string): any {
         return jwt.verify(token, process.env.JWT_ACCESS_SECRET as string);
     }
 
     static verifyRefreshToken(token: string): any {
         return jwt.verify(token, process.env.JWT_REFRESH_SECRET as string);
+    }
+
+    static verifyForgotToken(token: string): any {
+        return jwt.verify(token, process.env.JWT_FORGOT_PASSWORD_SECRET as string);
     }
 
     static setTokens(res: Response, accessToken: string, refreshToken: string, role: string): void {

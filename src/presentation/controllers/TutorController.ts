@@ -1,27 +1,35 @@
 import { Request, Response } from "express";
 
-import { RegisterTutor } from "../../application/useCases/tutorUseCases/RegisterTutor";
+import { RegisterTutor } from "../../application/useCases/tutor/RegisterTutor";
 import { VerifyOTPTutor } from "../../application/useCases/VerifyOTP";
-import { MongoTutorRepository } from "../../infrastructure/repositories/MongoTutorRepository";
-import { LoginTutorUseCase } from "../../application/useCases/tutorUseCases/TutorLogin";
+import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
+import { LoginTutorUseCase } from "../../application/useCases/tutor/TutorLogin";
 import { JWTService } from "../../shared/utils/JWTService";
 import { generateOTP } from "../../shared/utils/OTPService";
 import { OTPModel } from "../../infrastructure/database/models/OTPModel";
 import { sendOTPEmail } from "../../infrastructure/services/EmailService";
+import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
+import { ForgotPassword } from "../../application/useCases/tutor/ForgotPassword";
+import { ResetPassword } from "../../application/useCases/tutor/ResetPassword";
+import { LogoutTutorUseCase } from "../../application/useCases/tutor/LogoutTutorUseCase";
 
 export class TutorController {
-    private tutorRepo: MongoTutorRepository;
+    private tutorRepo: TutorRepository;
     private registerTutor: RegisterTutor;
     private verifyOTPUseCase: VerifyOTPTutor;
     private loginTutorUseCase: LoginTutorUseCase;
     private jwtService: JWTService;
+    private _forgotPasswordUseCase: ForgotPassword;
+    private _resetPasswordUseCase: ResetPassword;
 
     constructor() {
-        this.tutorRepo = new MongoTutorRepository();
+        this.tutorRepo = new TutorRepository();
         this.registerTutor = new RegisterTutor(this.tutorRepo);
         this.verifyOTPUseCase = new VerifyOTPTutor(this.tutorRepo);
         this.jwtService = new JWTService();
         this.loginTutorUseCase = new LoginTutorUseCase(this.tutorRepo, this.jwtService);
+        this._forgotPasswordUseCase = new ForgotPassword(this.tutorRepo);
+        this._resetPasswordUseCase = new ResetPassword(this.tutorRepo)
     }
 
     //REGISTER TUTOR
@@ -35,9 +43,9 @@ export class TutorController {
             maxAge: 24 * 60 * 60 * 1000,
           });
     
-          res.status(201).json({ message: "Registration successful. OTP sent to email." });
+          res.status(HttpStatusEnum.CREATED).json({ message: "Registration successful. OTP sent to email." });
         } catch (error) {
-          res.status(400).json({ error });
+          res.status(HttpStatusEnum.BAD_REQUEST).json({ error });
         }
     };
 
@@ -54,9 +62,9 @@ export class TutorController {
           await OTPModel.create({ email: email, otp, expiredAt });
     
           await sendOTPEmail(email, otp);
-          res.status(201).json({ message: "OTP Resent successful." });
+          res.status(HttpStatusEnum.CREATED).json({ message: "OTP Resent successful." });
         } catch (error) {
-          res.status(500).json({ error: "An error occurred during otp resend" });
+          res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "An error occurred during otp resend" });
         }
       }
     
@@ -66,7 +74,7 @@ export class TutorController {
         const email = req.cookies.OTPEmail;
     
         if (!email || !otp) {
-            return res.status(400).json({ 
+            return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
                 success: false,
                 message: "Email and OTP are required",
                 error: "INVALID_INPUT"
@@ -78,13 +86,13 @@ export class TutorController {
     
             if (isVerified) {
                 res.clearCookie('OTPEmail');
-                return res.status(200).json({ 
+                return res.status(HttpStatusEnum.OK).json({ 
                     success: true,
                     message: "OTP verified successfully!",
                     error: null
                 });
             } else {
-                return res.status(400).json({ 
+                return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
                     success: false,
                     message: "Invalid OTP. Please try again!",
                     error: "INVALID_OTP"
@@ -92,7 +100,7 @@ export class TutorController {
             }
         } catch (error) {
             console.error("OTP verification failed: ", error);
-            res.status(500).json({ 
+            res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ 
                 success: false,
                 message: "Internal server error",
                 error: "SERVER_ERROR"
@@ -107,13 +115,36 @@ export class TutorController {
             const { accessToken, refreshToken, tutor } = await this.loginTutorUseCase.execute(email, password)
             JWTService.setTokens(res, accessToken, refreshToken, tutor.role);
 
-            res.status(200).json({
+            res.status(HttpStatusEnum.OK).json({
                 message: "Tutor Login Successful",
                 tutor,
             })
         } catch (error) {
             console.error("Login error:", error);
-            res.status(401).json({  error });
+            res.status(HttpStatusEnum.UNAUTHORIZED).json({  error });
         }
     }
+
+    public forgotPassword = async (req: Request, res: Response): Promise<void> => {
+        try {
+          await this._forgotPasswordUseCase.execute(req, res);
+        } catch (error) {
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      };
+    
+      public resetPassword = async (req: Request, res: Response): Promise<void> => {
+        try {
+          console.log("Reached Reset password controller");
+          
+          await this._resetPasswordUseCase.execute(req, res);
+        } catch (error) {
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      };
+
+      public logout = async(req: Request, res: Response) => {
+        const role = req.params.role;
+        return LogoutTutorUseCase.execute(req, res, role);
+      }
 }

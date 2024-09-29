@@ -1,28 +1,39 @@
 import { Request, Response } from "express";
 
-import { RegisterStudent } from "../../application/useCases/studentUseCases/RegisterStudent";
+import { RegisterStudent } from "../../application/useCases/student/RegisterStudent";
 import { VerifyOTP } from "../../application/useCases/VerifyOTP";
-import { MongoStudentRepository } from "../../infrastructure/repositories/MongoStudentRepository";
+import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
 import { JWTService } from "../../shared/utils/JWTService";
-import { LoginStudentUseCase } from "../../application/useCases/studentUseCases/StudentLogin";
-import { LogoutStudentUseCase } from "../../application/useCases/studentUseCases/LogoutStudent";
+import { LoginStudentUseCase } from "../../application/useCases/student/StudentLogin";
+import { LogoutStudentUseCase } from "../../application/useCases/student/LogoutStudent";
 import { generateOTP } from "../../shared/utils/OTPService";
 import { OTPModel } from "../../infrastructure/database/models/OTPModel";
 import { sendOTPEmail } from "../../infrastructure/services/EmailService";
+import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
+import { ForgotPassword } from "../../application/useCases/student/ForgotPassword";
+import { ResetPassword } from "../../application/useCases/student/ResetPassword";
+
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 export class StudentController {
-  private studentRepo: MongoStudentRepository;
+  private studentRepo: StudentRepository;
   private registerStudent: RegisterStudent;
   private verifyOTPUseCase: VerifyOTP;
   private loginStudentUseCase: LoginStudentUseCase;
-  private jwtService: JWTService
+  private jwtService: JWTService;
+  private _forgotPasswordUseCase: ForgotPassword;
+  private _resetPasswordUseCase: ResetPassword;
 
   constructor() {
-    this.studentRepo = new MongoStudentRepository();
+    this.studentRepo = new StudentRepository();
     this.jwtService= new JWTService()
     this.registerStudent = new RegisterStudent(this.studentRepo);
     this.verifyOTPUseCase = new VerifyOTP(this.studentRepo);
     this.loginStudentUseCase = new LoginStudentUseCase(this.studentRepo, this.jwtService)
+    this._forgotPasswordUseCase = new ForgotPassword(this.studentRepo);
+    this._resetPasswordUseCase = new ResetPassword(this.studentRepo)
   }
 
   // Register a new student
@@ -38,9 +49,9 @@ export class StudentController {
         secure: process.env.NODE_ENV === 'production'
       })
 
-      res.status(201).json({ message: "Registration successful. OTP sent to email." });
+      res.status(HttpStatusEnum.CREATED).json({ message: "Registration successful. OTP sent to email." });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred during registration" });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "An error occurred during registration" });
     }
   };
 
@@ -57,9 +68,9 @@ export class StudentController {
       await OTPModel.create({ email: email, otp, expiredAt });
 
       await sendOTPEmail(email, otp);
-      res.status(201).json({ message: "OTP Resent successful." });
+      res.status(HttpStatusEnum.CREATED).json({ message: "OTP Resent successful." });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred during otp resend" });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "An error occurred during otp resend" });
     }
   }
 
@@ -70,7 +81,7 @@ export class StudentController {
     const email = req.cookies.OTPEmail
 
     if (!email || !otp) {
-      return res.status(400).json({ 
+      return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
         success: false,
         message: "Email and OTP are required",
         error: "INVALID_INPUT"
@@ -82,13 +93,13 @@ export class StudentController {
 
       if (isVerified) {
         res.clearCookie('OTPEmail');
-        return res.status(200).json({ 
+        return res.status(HttpStatusEnum.OK).json({ 
           success: true,
           message: "OTP verified successfully!",
           error: null
         });
       } else {
-        return res.status(400).json({ 
+        return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
           success: false,
           message: "Invalid OTP. Please try again!",
           error: "INVALID_OTP"
@@ -96,7 +107,7 @@ export class StudentController {
       }
     } catch (error) {
       console.error("OTP verification failed: ", error);
-      res.status(500).json({ 
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ 
         success: false,
         message: "Internal server error",
         error: "SERVER_ERROR"
@@ -114,20 +125,68 @@ export class StudentController {
         
         JWTService.setTokens(res, accessToken, refreshToken, student.role);
 
-        res.status(200).json({
+        res.status(HttpStatusEnum.OK).json({
             message: "Login successful",
             student,
         });
     } catch (error) {
         console.error("Login error:", error);
-        res.status(401).json({  error });
+        res.status(HttpStatusEnum.UNAUTHORIZED).json({  error });
     }
   }
+
+  public forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      await this._forgotPasswordUseCase.execute(req, res);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
+
+  public resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      console.log("Reached Reset password controller");
+      
+      await this._resetPasswordUseCase.execute(req, res);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
 
   //LOGOUT STUDENT
   public logout = async(req: Request, res: Response) => {
     const role = req.params.role;
     return LogoutStudentUseCase.execute(req, res, role);
+  }
+
+  //DAHSBOARD
+  async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      // Assuming studentId is set by the middleware after authentication
+      const studentId = req.userId;
+
+      if (!studentId) {
+        res.status(401).json({ message: 'Unauthorized access' });
+        return
+      }
+
+      // Fetch student data from repository
+      const student = await this.studentRepo.findStudentById(studentId);
+
+      if (!student) {
+        res.status(404).json({ message: 'Student not found' });
+        return
+      }
+
+      // Respond with student data (or other dashboard-related info)
+      res.status(200).json({
+        message: 'Welcome to your dashboard!',
+        student,
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 
 }
