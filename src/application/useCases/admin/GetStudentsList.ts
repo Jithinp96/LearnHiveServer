@@ -2,15 +2,15 @@ import { IStudentRepository } from "../../../domain/interfaces/IStudentRepositor
 import { Student } from "../../../domain/entities/Student";
 
 export class GetStudentsList {
-    private studentRepository: IStudentRepository;
+    private _studentRepository: IStudentRepository;
 
     constructor(studentRepository: IStudentRepository) {
-        this.studentRepository = studentRepository;
+        this._studentRepository = studentRepository;
     }
 
     public async execute(): Promise<Student[]> {
         try {
-            const students = await this.studentRepository.getAllStudents();
+            const students = await this._studentRepository.getAllStudents();
             return students;
         } catch (error) {
             console.error("Error fetching students list:", error);

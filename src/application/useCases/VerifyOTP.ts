@@ -3,11 +3,11 @@ import { ITutorRepository } from "../../domain/interfaces/ITutorRepository";
 import { OTPModel } from "../../infrastructure/database/models/OTPModel";
 
 export class VerifyOTP {
-    constructor(private studentRepo: IStudentRepository) {}
+    constructor(private _studentRepo: IStudentRepository) {}
 
     async execute(email:string, otp: number): Promise<boolean> {
         try {
-            const student = await this.studentRepo.findStudentByEmail(email);
+            const student = await this._studentRepo.findStudentByEmail(email);
 
             if(!student) {
                 throw new Error('Student not found!');
@@ -24,7 +24,7 @@ export class VerifyOTP {
             }
         
             student.isVerified = true;
-            await this.studentRepo.updateStudent(student);
+            await this._studentRepo.updateStudent(student);
         
             await OTPModel.deleteOne({ _id: dbOTP._id });
         
@@ -37,11 +37,11 @@ export class VerifyOTP {
 }
 
 export class VerifyOTPTutor {
-    constructor(private tutorRepo: ITutorRepository) {}
+    constructor(private _tutorRepo: ITutorRepository) {}
 
     async execute(email: string, otp: number): Promise<boolean> {
         try {
-            const tutor = await this.tutorRepo.findTutorByEmail(email);
+            const tutor = await this._tutorRepo.findTutorByEmail(email);
 
             if (!tutor) {
                 throw new Error('Tutor not found!');
@@ -58,7 +58,7 @@ export class VerifyOTPTutor {
             }
 
             tutor.isVerified = true;
-            await this.tutorRepo.updateTutor(tutor);
+            await this._tutorRepo.updateTutor(tutor);
 
             await OTPModel.deleteOne({ _id: dbOTP._id });
 

@@ -4,17 +4,17 @@ import bcrypt from 'bcryptjs';
 
 export class LoginStudentUseCase {
     
-    private studentRepo: IStudentRepository;
-    private jwtService: JWTService;
+    private _studentRepo: IStudentRepository;
+    private _jwtService: JWTService;
 
     constructor(studentRepo: IStudentRepository, jwtService: JWTService) {
-        this.studentRepo = studentRepo;
-        this.jwtService = jwtService;
+        this._studentRepo = studentRepo;
+        this._jwtService = jwtService;
     }
 
     async execute(email: string, password: string): Promise<{ accessToken: string; refreshToken: string; student: any }> {
         try {
-            const student = await this.studentRepo.findStudentByEmail(email);
+            const student = await this._studentRepo.findStudentByEmail(email);
         
             if (!student) {
                 throw new Error("Invalid email or password");

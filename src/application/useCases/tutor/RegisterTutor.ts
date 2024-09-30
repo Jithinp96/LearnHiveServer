@@ -8,11 +8,11 @@ import { sendOTPEmail } from '../../../infrastructure/services/EmailService';
 import { generateUniqueId } from '../../../shared/utils/IDService';
 
 export class RegisterTutor {
-    constructor(private tutorRepo: ITutorRepository) {}
+    constructor(private _tutorRepo: ITutorRepository) {}
 
     async execute(data: TutorRegistrationDTO): Promise<void> {
         try {
-            const existingTutor = await this.tutorRepo.findTutorByEmail(data.email);
+            const existingTutor = await this._tutorRepo.findTutorByEmail(data.email);
 
             if (existingTutor) {
                 throw new Error("Tutor with this email already exists");
@@ -36,7 +36,7 @@ export class RegisterTutor {
                 createdAt: new Date(),
             };
 
-            const createdTutor = await this.tutorRepo.createTutor(newTutor);
+            const createdTutor = await this._tutorRepo.createTutor(newTutor);
 
             const expiredAt = new Date(Date.now() + 60000);
             await OTPModel.create({ email: data.email, otp, expiredAt });

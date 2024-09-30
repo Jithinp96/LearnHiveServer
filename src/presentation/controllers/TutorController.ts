@@ -14,29 +14,29 @@ import { ResetPassword } from "../../application/useCases/tutor/ResetPassword";
 import { LogoutTutorUseCase } from "../../application/useCases/tutor/LogoutTutorUseCase";
 
 export class TutorController {
-    private tutorRepo: TutorRepository;
-    private registerTutor: RegisterTutor;
-    private verifyOTPUseCase: VerifyOTPTutor;
-    private loginTutorUseCase: LoginTutorUseCase;
-    private jwtService: JWTService;
+    private _tutorRepo: TutorRepository;
+    private _registerTutor: RegisterTutor;
+    private _verifyOTPUseCase: VerifyOTPTutor;
+    private _loginTutorUseCase: LoginTutorUseCase;
+    private _jwtService: JWTService;
     private _forgotPasswordUseCase: ForgotPassword;
     private _resetPasswordUseCase: ResetPassword;
 
     constructor() {
-        this.tutorRepo = new TutorRepository();
-        this.registerTutor = new RegisterTutor(this.tutorRepo);
-        this.verifyOTPUseCase = new VerifyOTPTutor(this.tutorRepo);
-        this.jwtService = new JWTService();
-        this.loginTutorUseCase = new LoginTutorUseCase(this.tutorRepo, this.jwtService);
-        this._forgotPasswordUseCase = new ForgotPassword(this.tutorRepo);
-        this._resetPasswordUseCase = new ResetPassword(this.tutorRepo)
+        this._tutorRepo = new TutorRepository();
+        this._registerTutor = new RegisterTutor(this._tutorRepo);
+        this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
+        this._jwtService = new JWTService();
+        this._loginTutorUseCase = new LoginTutorUseCase(this._tutorRepo, this._jwtService);
+        this._forgotPasswordUseCase = new ForgotPassword(this._tutorRepo);
+        this._resetPasswordUseCase = new ResetPassword(this._tutorRepo)
     }
 
     //REGISTER TUTOR
     public register = async (req: Request, res: Response): Promise<void> => {
         try {
           const { name, email, mobile, password } = req.body;
-          await this.registerTutor.execute({ name, email, mobile, password });
+          await this._registerTutor.execute({ name, email, mobile, password });
     
           res.cookie("OTPEmail", email, {
             httpOnly: true,
@@ -82,7 +82,7 @@ export class TutorController {
         }
     
         try {
-            const isVerified = await this.verifyOTPUseCase.execute(email, parseInt(otp));
+            const isVerified = await this._verifyOTPUseCase.execute(email, parseInt(otp));
     
             if (isVerified) {
                 res.clearCookie('OTPEmail');
@@ -112,7 +112,7 @@ export class TutorController {
         const { email, password } = req.body;
 
         try {
-            const { accessToken, refreshToken, tutor } = await this.loginTutorUseCase.execute(email, password)
+            const { accessToken, refreshToken, tutor } = await this._loginTutorUseCase.execute(email, password)
             JWTService.setTokens(res, accessToken, refreshToken, tutor.role);
 
             res.status(HttpStatusEnum.OK).json({

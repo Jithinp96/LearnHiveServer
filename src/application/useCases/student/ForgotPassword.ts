@@ -5,7 +5,7 @@ import { IStudentRepository } from "../../../domain/interfaces/IStudentRepositor
 import { sendEmail } from "../../../shared/utils/SendEmail";
 
 export class ForgotPassword {
-    constructor(private studentRepo: IStudentRepository) {}
+    constructor(private _studentRepo: IStudentRepository) {}
 
     async execute(req: Request, res: Response): Promise<void> {
         const { email } = req.body;
@@ -17,7 +17,7 @@ export class ForgotPassword {
 
 
         try {
-            const student = await this.studentRepo.findStudentByEmail(email);
+            const student = await this._studentRepo.findStudentByEmail(email);
 
             if (!student) {
                 res.status(HttpStatusEnum.NOT_FOUND).json({ message: "Student not found" });

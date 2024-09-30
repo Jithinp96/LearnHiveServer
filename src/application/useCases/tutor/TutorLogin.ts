@@ -3,17 +3,17 @@ import { JWTService } from "../../../shared/utils/JWTService";
 import bcrypt from 'bcryptjs';
 
 export class LoginTutorUseCase {
-    private tutorRepo: ITutorRepository;
-    private jwtService: JWTService;
+    private _tutorRepo: ITutorRepository;
+    private _jwtService: JWTService;
 
     constructor(tutorRepo: ITutorRepository, jwtService: JWTService) {
-        this.tutorRepo = tutorRepo;
-        this.jwtService = jwtService;
+        this._tutorRepo = tutorRepo;
+        this._jwtService = jwtService;
     }
 
     async execute(email: string, password: string): Promise<{ accessToken: string; refreshToken: string; tutor: any}> {
         try {
-            const tutor = await this.tutorRepo.findTutorByEmail(email);
+            const tutor = await this._tutorRepo.findTutorByEmail(email);
 
             if (!tutor) {
                 throw new Error("Invalid email or password");

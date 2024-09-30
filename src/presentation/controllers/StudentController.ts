@@ -18,22 +18,22 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class StudentController {
-  private studentRepo: StudentRepository;
-  private registerStudent: RegisterStudent;
-  private verifyOTPUseCase: VerifyOTP;
-  private loginStudentUseCase: LoginStudentUseCase;
-  private jwtService: JWTService;
+  private _studentRepo: StudentRepository;
+  private _registerStudent: RegisterStudent;
+  private _verifyOTPUseCase: VerifyOTP;
+  private _loginStudentUseCase: LoginStudentUseCase;
+  private _jwtService: JWTService;
   private _forgotPasswordUseCase: ForgotPassword;
   private _resetPasswordUseCase: ResetPassword;
 
   constructor() {
-    this.studentRepo = new StudentRepository();
-    this.jwtService= new JWTService()
-    this.registerStudent = new RegisterStudent(this.studentRepo);
-    this.verifyOTPUseCase = new VerifyOTP(this.studentRepo);
-    this.loginStudentUseCase = new LoginStudentUseCase(this.studentRepo, this.jwtService)
-    this._forgotPasswordUseCase = new ForgotPassword(this.studentRepo);
-    this._resetPasswordUseCase = new ResetPassword(this.studentRepo)
+    this._studentRepo = new StudentRepository();
+    this._jwtService= new JWTService()
+    this._registerStudent = new RegisterStudent(this._studentRepo);
+    this._verifyOTPUseCase = new VerifyOTP(this._studentRepo);
+    this._loginStudentUseCase = new LoginStudentUseCase(this._studentRepo, this._jwtService)
+    this._forgotPasswordUseCase = new ForgotPassword(this._studentRepo);
+    this._resetPasswordUseCase = new ResetPassword(this._studentRepo)
   }
 
   // Register a new student
@@ -41,7 +41,7 @@ export class StudentController {
     try {
       const { name, email, mobile, password } = req.body;
       
-      await this.registerStudent.execute({ name, email, mobile, password });
+      await this._registerStudent.execute({ name, email, mobile, password });
       
       res.cookie("OTPEmail", email, {
         httpOnly: true,
@@ -89,7 +89,7 @@ export class StudentController {
     }
 
     try {
-      const isVerified = await this.verifyOTPUseCase.execute(email, parseInt(otp));
+      const isVerified = await this._verifyOTPUseCase.execute(email, parseInt(otp));
 
       if (isVerified) {
         res.clearCookie('OTPEmail');
@@ -120,7 +120,7 @@ export class StudentController {
     const { email, password } = req.body;
  
     try {
-        const { accessToken, refreshToken, student } = await this.loginStudentUseCase.execute(email, password);
+        const { accessToken, refreshToken, student } = await this._loginStudentUseCase.execute(email, password);
         console.log(student);
         
         JWTService.setTokens(res, accessToken, refreshToken, student.role);
@@ -171,7 +171,7 @@ export class StudentController {
       }
 
       // Fetch student data from repository
-      const student = await this.studentRepo.findStudentById(studentId);
+      const student = await this._studentRepo.findStudentById(studentId);
 
       if (!student) {
         res.status(404).json({ message: 'Student not found' });

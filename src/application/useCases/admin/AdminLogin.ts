@@ -1,10 +1,10 @@
 import { JWTService } from "../../../shared/utils/JWTService";
 
 export class AdminLogin {
-    private jwtService: JWTService;
+    private _jwtService: JWTService;
 
     constructor(jwtService: JWTService) {
-        this.jwtService = jwtService;
+        this._jwtService = jwtService;
     }
 
     async execute(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {

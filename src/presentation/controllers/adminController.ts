@@ -21,17 +21,17 @@ const getAllStudents = new GetStudentsList(studentRepository);
 const courseCategoryUseCases = new CourseCategoryUseCases(courseCategoryRepository);
 
 export class AdminController {
-    private adminLogin: AdminLogin;
+    private _adminLogin: AdminLogin;
 
     constructor(adminLogin: AdminLogin) {
-        this.adminLogin = adminLogin;
+        this._adminLogin = adminLogin;
     }
 
     public login = async (req: Request, res: Response): Promise<void> => {
         const { email, password } = req.body;
 
         try {
-            const { accessToken, refreshToken } = await this.adminLogin.execute(email, password);
+            const { accessToken, refreshToken } = await this._adminLogin.execute(email, password);
             
             JWTService.setTokens(res, accessToken, refreshToken, 'admin');
             res.status(HttpStatusEnum.OK).json({ success: true, message: 'Login Successful', accessToken })
