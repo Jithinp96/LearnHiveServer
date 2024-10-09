@@ -12,6 +12,7 @@ import { sendOTPEmail } from "../../infrastructure/services/EmailService";
 import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
 import { ForgotPassword } from "../../application/useCases/student/ForgotPassword";
 import { ResetPassword } from "../../application/useCases/student/ResetPassword";
+import { StudentUseCase } from "../../application/useCases/student/StudentUseCase";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -25,6 +26,7 @@ export class StudentController {
   private _jwtService: JWTService;
   private _forgotPasswordUseCase: ForgotPassword;
   private _resetPasswordUseCase: ResetPassword;
+  private _studentUseCase: StudentUseCase;
 
   constructor() {
     this._studentRepo = new StudentRepository();
@@ -33,7 +35,8 @@ export class StudentController {
     this._verifyOTPUseCase = new VerifyOTP(this._studentRepo);
     this._loginStudentUseCase = new LoginStudentUseCase(this._studentRepo, this._jwtService)
     this._forgotPasswordUseCase = new ForgotPassword(this._studentRepo);
-    this._resetPasswordUseCase = new ResetPassword(this._studentRepo)
+    this._resetPasswordUseCase = new ResetPassword(this._studentRepo);
+    this._studentUseCase = new StudentUseCase(this._studentRepo);
   }
 
   // Register a new student
@@ -121,7 +124,6 @@ export class StudentController {
  
     try {
         const { accessToken, refreshToken, student } = await this._loginStudentUseCase.execute(email, password);
-        console.log(student);
         
         JWTService.setTokens(res, accessToken, refreshToken, student.role);
 
@@ -130,8 +132,13 @@ export class StudentController {
             student,
         });
     } catch (error) {
-        console.error("Login error:", error);
-        res.status(HttpStatusEnum.UNAUTHORIZED).json({  error });
+          console.log("Error from : ", error, "Over");
+        
+          res.status(HttpStatusEnum.UNAUTHORIZED).json({
+          success: false,
+          message: error || "Login failed",
+          error: "AuthenticationFailed"
+      });
     }
   }
 
@@ -189,4 +196,43 @@ export class StudentController {
     }
   }
 
+  public getProfile = async (req: Request, res: Response) => {
+    const {id} = req.params;
+    try {
+      const student = await this._studentRepo.findStudentById(id);
+      
+      if(!student) {
+        return res.status(HttpStatusEnum.NOT_FOUND).json({
+          message: "Student details not found"
+        })
+      }
+      res.json(student)
+    } catch (error) {
+      console.error(error);
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
+    }
+  }
+
+  public updateEducation = async(req: Request, res: Response) => {
+    console.log("Reached updateEducation in student controller");
+    
+    const {id} = req.params;
+    const { level, board, startDate, endDate, grade, institution }  = req.body;
+    
+    try {
+      const student = await this._studentRepo.findStudentById(id);
+      // console.log("student from update education controller: ", student);
+      
+      if(!student) {
+        return res.status(HttpStatusEnum.NOT_FOUND).json({
+          message: "Student details not found"
+        })
+      }
+
+      await this._studentUseCase.updateEducation(id, { level, board, startDate, endDate, grade, institution })
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }

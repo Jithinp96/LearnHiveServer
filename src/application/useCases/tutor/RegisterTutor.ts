@@ -33,7 +33,9 @@ export class RegisterTutor {
                 isVerified: false,
                 isBlocked: false,
                 role: 'tutor',
-                createdAt: new Date(),
+                education:[],
+                subjects:[],
+                workExperience:[]
             };
 
             const createdTutor = await this._tutorRepo.createTutor(newTutor);

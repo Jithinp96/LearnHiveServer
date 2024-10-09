@@ -1,3 +1,19 @@
+export interface TutorEducation {
+    level: string;
+    board: string;
+    startDate: string;
+    endDate: string;
+    grade: string;
+    institution: string;
+}
+
+export interface WorkExperience {
+    institution: string;
+    designation: string;
+    startDate: string;
+    endDate: string;
+}
+
 export interface Tutor {
     tutorId: string;
     name: string;
@@ -7,5 +23,7 @@ export interface Tutor {
     isVerified: boolean;
     isBlocked: boolean;
     role: string;
-    createdAt: Date;
+    subjects: string[];
+    education: TutorEducation[];
+    workExperience: WorkExperience[];
 }

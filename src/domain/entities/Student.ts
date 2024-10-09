@@ -1,3 +1,12 @@
+interface Education {
+    level: string;
+    board: string;
+    startDate: string;
+    endDate: string;
+    grade: string;
+    institution: string;
+}
+
 export interface Student {
     studentId: string;
     name: string;
@@ -7,5 +16,5 @@ export interface Student {
     isVerified: boolean;
     isBlocked: boolean;
     role: string;
-    createdAt: Date; 
+    education: Education[];
 }

@@ -1,33 +1,33 @@
 import { Request, Response, NextFunction } from "express";
-import { StudentAuthService } from "../../application/services/StudentAuthService";
+import { TutorAuthService } from "../../application/services/TutorAuthService";
 
 interface IAuthRequest extends Request {
     userId?: string;
 }
 
-const studentAuthMiddleware = (studentAuthService: StudentAuthService) => {
+const tutorAuthMiddleware = (tutorAuthService: TutorAuthService) => {
     return async (req: IAuthRequest, res: Response, next: NextFunction) => {
-        const refreshToken = req.cookies.studentRefreshToken;
-        let accessToken = req.cookies.studentAccessToken;
-        
+        const refreshToken = req.cookies.tutorRefreshToken;
+        let accessToken = req.cookies.tutorAccessToken;
+
         if (!refreshToken) {
             return res.status(401).json({ message: "Not authorized, no refresh token" });
         }
 
         if (!accessToken) {
             try {
-                accessToken = await studentAuthService.refreshStudentToken(refreshToken);
+                accessToken = await tutorAuthService.refreshTutorToken(refreshToken);
                 if (!accessToken) {
                     throw new Error("Failed to refresh access token");
                 }
-                res.cookie("studentAccessToken", accessToken, { httpOnly: true });
+                res.cookie("tutorAccessToken", accessToken, { httpOnly: true });
             } catch (error) {
                 return res.status(401).json({ message: error });
             }
         }
 
         try {
-            const userId = await studentAuthService.validateStudentToken(accessToken);
+            const userId = await tutorAuthService.validateTutorToken(accessToken);
             
             if (!userId) {
                 return res.status(401).json({ message: "Not authorized" });
@@ -38,7 +38,7 @@ const studentAuthMiddleware = (studentAuthService: StudentAuthService) => {
         } catch (error) {
             return res.status(401).json({ message: "Invalid token" });
         }
-    };
-};
+    }
+}
 
-export default studentAuthMiddleware;
+export default tutorAuthMiddleware;

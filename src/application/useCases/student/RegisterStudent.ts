@@ -34,7 +34,7 @@ export class RegisterStudent {
               isVerified: false,
               role: "student",
               isBlocked: false,
-              createdAt: new Date()
+              education:[]
             };
       
             const createdStudent = await this._studentRepo.createStudent(newStudent);

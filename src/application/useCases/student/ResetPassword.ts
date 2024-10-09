@@ -26,7 +26,7 @@ export class ResetPassword {
 
             const studentId = decodedToken.userId._id;
             const student = await this._studentRepo.findStudentById(studentId);
-
+            
             if (!student) {
                 res.status(HttpStatusEnum.NOT_FOUND).json({ message: 'Student not found.' });
                 return;

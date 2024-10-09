@@ -21,6 +21,8 @@ export class LoginStudentUseCase {
             }
 
             if (student.isBlocked) {
+                console.log("Inside blocked");
+                
                 throw new Error("Your account is blocked");
             }
 
@@ -33,15 +35,14 @@ export class LoginStudentUseCase {
                 throw new Error("Invalid email or password");
             }
 
-            const payload = { id: student.studentId, role: student.role };
+            // const payload = { id: student.studentId, role: student.role };
 
-            const accessToken = JWTService.generateAccessToken(payload)
-            const refreshToken = JWTService.generateRefreshToken(payload);
+            const accessToken = JWTService.generateAccessToken({ student })
+            const refreshToken = JWTService.generateRefreshToken({ student });
 
             return { accessToken, refreshToken, student };
         } catch (error) {
-            console.error("Login error:", error);
-            throw new Error("Login Failed"+ error);
+            throw new Error("Login Failed");
         }
     }
 }

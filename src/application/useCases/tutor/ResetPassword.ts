@@ -18,7 +18,7 @@ export class ResetPassword {
             }
 
             const decodedToken = JWTService.verifyForgotToken(token);
-            
+
             if (!decodedToken) {
                 res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Invalid or expired token.' });
                 return;

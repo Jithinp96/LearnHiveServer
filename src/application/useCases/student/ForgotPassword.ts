@@ -18,13 +18,12 @@ export class ForgotPassword {
 
         try {
             const student = await this._studentRepo.findStudentByEmail(email);
-
+            
             if (!student) {
                 res.status(HttpStatusEnum.NOT_FOUND).json({ message: "Student not found" });
                 return
             }
         
-            const payload = { id: student.studentId, role: student.role };
             const forgotPasswordToken = JWTService.generateForgotToken({ userId: student });
             const resetLink = `${process.env.CORSURL}/reset-password?token=${forgotPasswordToken}`;
 

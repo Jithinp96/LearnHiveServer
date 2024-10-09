@@ -24,8 +24,7 @@ export class ForgotPassword {
                 return
             }
 
-            const payload = { id: tutor.tutorId, role: tutor.role };
-            const forgotPasswordToken = JWTService.generateForgotToken(payload);
+            const forgotPasswordToken = JWTService.generateForgotToken({ userId: tutor});
             const resetLink = `${process.env.CORSURL}/tutor/reset-password?token=${forgotPasswordToken}`;
 
             const subject = 'Password Reset Request';

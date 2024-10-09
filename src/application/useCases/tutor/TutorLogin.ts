@@ -32,10 +32,8 @@ export class LoginTutorUseCase {
                 throw new Error("Invalid email or password");
             }
 
-            const payload = { id: tutor.tutorId, role: tutor.role}
-
-            const accessToken = JWTService.generateAccessToken(payload);
-            const refreshToken = JWTService.generateRefreshToken(payload);
+            const accessToken = JWTService.generateAccessToken({ tutor });
+            const refreshToken = JWTService.generateRefreshToken({ tutor });
 
             return { accessToken, refreshToken, tutor };
         } catch (error) {

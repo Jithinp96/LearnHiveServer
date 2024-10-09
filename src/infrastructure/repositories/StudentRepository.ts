@@ -27,7 +27,7 @@ export class StudentRepository implements IStudentRepository {
     async updateStudent(student: Student): Promise<Student> {
         try {
             await StudentModel.updateOne({ email: student.email }, student);
-            return student;
+            return student as Student;
         } catch (error) {
             console.error('Error updating student:', error);
             throw new Error('Failed to update student');

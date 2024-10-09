@@ -16,7 +16,7 @@ export class JWTService {
 
     static generateForgotToken(payload: object): string {
         return jwt.sign(payload, process.env.JWT_FORGOT_PASSWORD_SECRET as string, {
-            expiresIn: '15m'  // Token expires in 15 minutes
+            expiresIn: '15m'
         });
     }
 
