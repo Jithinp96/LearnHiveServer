@@ -26,7 +26,9 @@ tutorRoutes.get('/profile/:id', tutorController.getProfile);
 tutorRoutes.put('/profile/:id/update-education', tutorController.addEducation);
 
 tutorRoutes.post('/:id/add-course', courseController.addCourse)
-tutorRoutes.post('/upload-video', upload, courseController.uploadVideoController)
+tutorRoutes.post('/upload-video', upload.single('video'), courseController.uploadVideoController)
+tutorRoutes.post('/upload-thumbnail', upload.single('image'), courseController.uploadThumbnail)
 tutorRoutes.get('/getcategories', courseController.getAllCategories);
+tutorRoutes.get('/course-list', courseController.fetchTutorCourses);
 
 export default tutorRoutes;

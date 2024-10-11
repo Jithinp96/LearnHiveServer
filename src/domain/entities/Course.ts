@@ -25,6 +25,9 @@ export interface Course {
     price: number;
     offerPercentage?: number;
     purchaseCount: number;
+    level: string;
+    duration: number;
+    thumbnail: string;
     isBlocked: boolean;
     isApproved: boolean;
     videos: Video[];

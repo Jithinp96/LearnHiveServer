@@ -21,6 +21,9 @@ interface CourseDocument extends Document {
     price: number;
     offerPercentage?: number;
     purchaseCount: number;
+    level: string;
+    duration: number;
+    thumbnail: string;
     isBlocked: boolean;
     isApproved: boolean;
     videos: {
@@ -63,6 +66,15 @@ const courseSchema: Schema = new Schema({
     purchaseCount: { 
         type: Number, 
         default: 0 
+    },
+    level: {
+        type: String,
+    },
+    duration: {
+        type: Number,
+    },
+    thumbnail: {
+        type: String,
     },
     isBlocked: {
         type: Boolean,
