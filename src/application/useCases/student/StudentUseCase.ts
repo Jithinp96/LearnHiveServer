@@ -1,7 +1,9 @@
+import { ObjectId } from "mongodb";
 import { Student } from "../../../domain/entities/Student";
 import { IStudentRepository } from "../../../domain/interfaces/IStudentRepository";
 
 interface Education {
+    _id: string;
     level: string;
     board: string;
     startDate: string;
@@ -9,22 +11,12 @@ interface Education {
     grade: string;
     institution: string;  
 }
-  
-// interface UpdateProfileInput {
-//     studentId: string;
-//     name: string;
-//     email: string;
-//     mobile: number;
-//     profileImage?: string;
-// }
 
 export class StudentUseCase {
     constructor(private _studentRepository: IStudentRepository) {}
     
-    async updateEducation(id: string, newEducationDetails: object): Promise<Student | null> {
+    async addEducation(id: string, newEducationDetails: object): Promise<Student | null> {
         try {
-            console.log("newEducationDetails: ", newEducationDetails);
-
             const validatedEducation = this.validateEducationDetails(newEducationDetails);
 
             const student = await this._studentRepository.findStudentById(id);
@@ -38,7 +30,58 @@ export class StudentUseCase {
             return await this._studentRepository.updateStudent(student);
         } catch (error) {
             console.error(error);
-            throw new Error('Failed to update education');
+            throw new Error('Failed to add education');
+        }
+    }
+
+    async editEducation(studentId: string, educationId: string, educationData: any) {
+        
+        try {
+            const student = await this._studentRepository.findStudentById(studentId);
+        
+            if (!student) {
+                throw new Error("Student not found");
+            }
+            const educationObjectId = new ObjectId(educationId);
+            const educationIndex = student.education.findIndex(
+                (edu: Partial<Education>) => (edu as any)._id.equals(educationObjectId)
+            );
+            
+            if (educationIndex === -1) {
+                throw new Error("Education record not found");
+            }
+
+            student.education[educationIndex] = { ...student.education[educationIndex], ...educationData };
+
+            const updatedStudent = await this._studentRepository.updateStudent(student);
+
+            return updatedStudent;
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to edit education');
+        }
+    }
+
+    async deleteEducation(studentId: string, educationId: string) {
+        try {
+            const student = await this._studentRepository.findStudentById(studentId);
+            if (!student) {
+                throw new Error("Student not found");
+            }
+
+            const educationObjectId = new ObjectId(educationId);
+
+            student.education = student.education.filter((edu) => {
+                const educationWithId = edu as unknown as { _id: ObjectId };
+                return !educationWithId._id.equals(educationObjectId);
+            });
+
+            const updatedStudent = await this._studentRepository.updateStudent(student);
+
+            return updatedStudent;
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to delete education');
         }
     }
 
@@ -59,30 +102,3 @@ export class StudentUseCase {
         return educationDetails as Education;
     }
 }
-
-
-
-// // Updating general profile information
-    // async updateProfile(input: UpdateProfileInput): Promise<Student | null> {
-    //     try {
-    //         const student = await this._studentRepository.findStudentById(input.studentId);
-
-    //         if (!student) {
-    //             throw new Error("Student not found");
-    //         }
-
-    //         // Update profile fields
-    //         student.name = input.name;
-    //         student.email = input.email;
-    //         student.mobile = input.mobile;
-    //         if (input.profileImage) {
-    //             // student.profileImage = input.profileImage;
-    //         }
-
-    //         // Saving updated profile
-    //         return await this._studentRepository.updateStudent(student);
-    //     } catch (error) {
-    //         console.error(error);
-    //         throw new Error('Failed to update profile');
-    //     }
-    // }

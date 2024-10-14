@@ -33,8 +33,8 @@ export class LoginStudentUseCase {
                 throw new Error("Invalid email or password");
             }
 
-            const accessToken = JWTService.generateAccessToken( student )
-            const refreshToken = JWTService.generateRefreshToken({ student });
+            const accessToken = JWTService.generateStudentAccessToken( student )
+            const refreshToken = JWTService.generateStudentRefreshToken({ student });
             
             return { accessToken, refreshToken, student };
         } catch (error) {

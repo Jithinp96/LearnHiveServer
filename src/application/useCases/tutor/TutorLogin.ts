@@ -14,7 +14,7 @@ export class LoginTutorUseCase {
     async execute(email: string, password: string): Promise<{ accessToken: string; refreshToken: string; tutor: any}> {
         try {
             const tutor = await this._tutorRepo.findTutorByEmail(email);
-
+            
             if (!tutor) {
                 throw new Error("Invalid email or password");
             }
@@ -32,13 +32,13 @@ export class LoginTutorUseCase {
                 throw new Error("Invalid email or password");
             }
 
-            const accessToken = JWTService.generateAccessToken({ tutor });
-            const refreshToken = JWTService.generateRefreshToken({ tutor });
+            const accessToken = JWTService.generateTutorAccessToken( tutor );
+            const refreshToken = JWTService.generateTutorRefreshToken({ tutor });
 
             return { accessToken, refreshToken, tutor };
         } catch (error) {
             console.error("Tutor Login error:", error);
-            throw new Error("Tutor Login Failed"+ error);
+            throw new Error("Tutor Login Failed");
         }
     }
 }

@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import { TutorController } from "../controllers/TutorController";
 import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
 import { TutorAuthService } from "../../application/services/TutorAuthService";
@@ -22,13 +23,13 @@ tutorRoutes.post('/reset-password', tutorController.resetPassword);
 tutorRoutes.post('/login', tutorController.login);
 tutorRoutes.post('/logout/:role', tutorAuthMiddleware(tutorAuthService), tutorController.logout);
 
-tutorRoutes.get('/profile/:id', tutorController.getProfile);
+tutorRoutes.get('/profile/:id', tutorAuthMiddleware(tutorAuthService), tutorController.getProfile);
 tutorRoutes.put('/profile/:id/update-education', tutorController.addEducation);
 
-tutorRoutes.post('/:id/add-course', courseController.addCourse)
-tutorRoutes.post('/upload-video', upload.single('video'), courseController.uploadVideoController)
-tutorRoutes.post('/upload-thumbnail', upload.single('image'), courseController.uploadThumbnail)
-tutorRoutes.get('/getcategories', courseController.getAllCategories);
-tutorRoutes.get('/course-list', courseController.fetchTutorCourses);
+tutorRoutes.post('/:id/add-course', tutorAuthMiddleware(tutorAuthService), courseController.addCourse)
+tutorRoutes.post('/upload-video', tutorAuthMiddleware(tutorAuthService), upload.single('video'), courseController.uploadVideoController)
+tutorRoutes.post('/upload-thumbnail', tutorAuthMiddleware(tutorAuthService), upload.single('image'), courseController.uploadThumbnail)
+tutorRoutes.get('/getcategories', tutorAuthMiddleware(tutorAuthService), courseController.getAllCategories);
+tutorRoutes.get('/course-list', tutorAuthMiddleware(tutorAuthService), courseController.fetchTutorCourses);
 
 export default tutorRoutes;

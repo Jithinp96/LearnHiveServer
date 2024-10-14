@@ -223,15 +223,12 @@ export class StudentController {
     }
   }
 
-  public updateEducation = async(req: Request, res: Response) => {
-    console.log("Reached updateEducation in student controller");
-    
+  public addEducation = async(req: Request, res: Response) => {
     const {id} = req.params;
     const { level, board, startDate, endDate, grade, institution }  = req.body;
     
     try {
       const student = await this._studentRepo.findStudentById(id);
-      // console.log("student from update education controller: ", student);
       
       if(!student) {
         return res.status(HttpStatusEnum.NOT_FOUND).json({
@@ -239,10 +236,42 @@ export class StudentController {
         })
       }
 
-      await this._studentUseCase.updateEducation(id, { level, board, startDate, endDate, grade, institution })
+      await this._studentUseCase.addEducation(id, { level, board, startDate, endDate, grade, institution })
 
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  public editEducation = async(req: Request, res: Response) => {
+    console.log("Reached edit education controller");
+    
+    const { id, educationId } = req.params;
+    const educationData = req.body;
+
+    console.log("id from edit education for student: ", id);
+    console.log("educationId from edit education for student: ", educationId);
+    console.log("educationData from edit education for student: ", educationData);
+
+    try {
+      const updatedStudent = await this._studentUseCase.editEducation(id, educationId, educationData);
+      console.log("updatedStudent from edit educaTION: ", updatedStudent);
+      
+      res.status(200).json(updatedStudent);
+    } catch (error) {
+      console.error(error);
+    }
+    
+  }
+
+  public deleteEducation = async(req: Request, res: Response) => {
+    const { id, educationId } = req.params;
+
+    try {
+        const updatedStudent = await this._studentUseCase.deleteEducation(id, educationId);
+        res.status(200).json(updatedStudent);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete education" });
     }
   }
 }

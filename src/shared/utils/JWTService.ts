@@ -2,14 +2,36 @@ import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 
 export class JWTService {
-    static generateAccessToken(payload: object): string {
-        return jwt.sign(payload, process.env.JWT_ACCESS_SECRET as string, {
+    static generateStudentAccessToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_STUDENT_ACCESS_SECRET as string, {
             expiresIn: process.env.JWT_ACCESS_EXPIRATION
         })
     }
 
-    static generateRefreshToken(payload: object): string {
-        return jwt.sign(payload, process.env.JWT_REFRESH_SECRET as string, {
+    static generateStudentRefreshToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_STUDENT_REFRESH_SECRET as string, {
+            expiresIn: process.env.JWT_REFRESH_EXPIRATION
+        })
+    }
+    static generateTutorAccessToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_TUTOR_ACCESS_SECRET as string, {
+            expiresIn: process.env.JWT_ACCESS_EXPIRATION
+        })
+    }
+
+    static generateTutorRefreshToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_TUTOR_REFRESH_SECRET as string, {
+            expiresIn: process.env.JWT_REFRESH_EXPIRATION
+        })
+    }
+    static generateAdminAccessToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_ADMIN_ACCESS_SECRET as string, {
+            expiresIn: process.env.JWT_ACCESS_EXPIRATION
+        })
+    }
+
+    static generateAdminRefreshToken(payload: object): string {
+        return jwt.sign(payload, process.env.JWT_ADMIN_REFRESH_SECRET as string, {
             expiresIn: process.env.JWT_REFRESH_EXPIRATION
         })
     }
@@ -20,13 +42,28 @@ export class JWTService {
         });
     }
 
-    static verifyAccessToken(token: string): any {
-        const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET as string);
+    static verifyStudentAccessToken(token: string): any {
+        const decoded = jwt.verify(token, process.env.JWT_STUDENT_ACCESS_SECRET as string);
         return {student: decoded};
     }
 
-    static verifyRefreshToken(token: string): any {
-        return jwt.verify(token, process.env.JWT_REFRESH_SECRET as string);
+    static verifyTutorAccessToken(token: string): any {
+        const decoded = jwt.verify(token, process.env.JWT_TUTOR_ACCESS_SECRET as string);
+        return {tutor: decoded};
+    }
+    static verifyAdminAccessToken(token: string): any {
+        const decoded = jwt.verify(token, process.env.JWT_ADMIN_ACCESS_SECRET as string);
+        return {admin: decoded};
+    }
+
+    static verifyStudentRefreshToken(token: string): any {
+        return jwt.verify(token, process.env.JWT_STUDENT_REFRESH_SECRET as string);
+    }
+    static verifyTutorRefreshToken(token: string): any {
+        return jwt.verify(token, process.env.JWT_TUTOR_REFRESH_SECRET as string);
+    }
+    static verifyAdminRefreshToken(token: string): any {
+        return jwt.verify(token, process.env.JWT_ADMIN_REFRESH_SECRET as string);
     }
 
     static verifyForgotToken(token: string): any {

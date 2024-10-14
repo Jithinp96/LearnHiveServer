@@ -113,7 +113,7 @@ export class TutorController {
 
   public login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
-
+    
     try {
         const { accessToken, refreshToken, tutor } = await this._loginTutorUseCase.execute(email, password)
         JWTService.setTokens(res, accessToken, refreshToken, tutor.role);
@@ -138,8 +138,6 @@ export class TutorController {
   
   public resetPassword = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log("Reached Reset password controller");
-      
       await this._resetPasswordUseCase.execute(req, res);
     } catch (error) {
       res.status(500).json({ message: 'Internal Server Error' });

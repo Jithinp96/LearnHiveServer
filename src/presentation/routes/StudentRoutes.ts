@@ -25,9 +25,13 @@ studentRoutes.post('/logout/:role', studentAuthMiddleware(studentAuthService), s
 studentRoutes.get('/dashboard', studentAuthMiddleware(studentAuthService), studentController.getDashboard)
 
 studentRoutes.get('/profile/:id', studentAuthMiddleware(studentAuthService), studentController.getProfile);
-studentRoutes.put("/profile/:id/update-education", studentAuthMiddleware(studentAuthService), studentController.updateEducation);
+studentRoutes.put("/profile/:id/add-education", studentAuthMiddleware(studentAuthService), studentController.addEducation);
+studentRoutes.put("/profile/:id/edit-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.editEducation);
+studentRoutes.delete("/profile/:id/delete-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.deleteEducation);
 
-studentRoutes.get('/allcourses', studentAuthMiddleware(studentAuthService), courseController.fetchAllCourses);
-studentRoutes.get('/course/:courseId', studentAuthMiddleware(studentAuthService), courseController.fetchCourseDetails);
+studentRoutes.get('/getcategories', courseController.getAllCategories);
+
+studentRoutes.get('/allcourses', courseController.fetchAllCourses);
+studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
 
 export default studentRoutes;

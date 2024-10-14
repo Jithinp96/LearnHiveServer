@@ -2,23 +2,21 @@ import express from "express";
 
 import { AdminController } from "../controllers/adminController";
 import { AdminLogin } from "../../application/useCases/admin/AdminLogin";
-import { RefreshTokenController } from "../controllers/RefreshTokenController";
 import { JWTService } from "../../shared/utils/JWTService";
+import { AdminAuthService } from "../../application/services/AdminAuthService";
+import adminAuthMiddleware from "../../infrastructure/middlewares/AdminAuthMiddleware";
 
 const adminRoutes = express.Router();
 
 const jwtService = new JWTService();
-
 const adminLogin = new AdminLogin(jwtService);
-const refreshTokenController = new RefreshTokenController();
-
 const adminController = new AdminController(adminLogin);
+const adminAuthService = new AdminAuthService();
 
 adminRoutes.post('/login', (req, res) => adminController.login(req, res));
-adminRoutes.post('/refresh', (req, res) => refreshTokenController.refresh(req, res));
 adminRoutes.post('/logout/:role', adminController.logout);
 
-adminRoutes.get('/students', (req, res) => adminController.getAllStudents(req, res));
+adminRoutes.get('/students', adminAuthMiddleware(adminAuthService), (req, res) => adminController.getAllStudents(req, res));
 adminRoutes.get('/student/:id', (req, res) => adminController.getStudentById(req, res));
 adminRoutes.patch('/student/:id/block', (req, res) => adminController.blockStudent(req, res));
 

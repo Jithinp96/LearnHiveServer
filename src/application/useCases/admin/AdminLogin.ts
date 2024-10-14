@@ -17,8 +17,8 @@ export class AdminLogin {
             }
 
             const payload = { email: adminEmail, role: 'admin' };
-            const accessToken = JWTService.generateAccessToken(payload);
-            const refreshToken = JWTService.generateRefreshToken(payload);
+            const accessToken = JWTService.generateAdminAccessToken({ payload });
+            const refreshToken = JWTService.generateAdminRefreshToken({ payload });
 
             return { accessToken, refreshToken }
         } catch (error) {

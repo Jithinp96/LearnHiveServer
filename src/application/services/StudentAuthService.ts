@@ -5,7 +5,7 @@ export class StudentAuthService {
     constructor (private _studentRepo: IStudentRepository) {}
 
     async validateStudentToken(token: string): Promise<string | null> {
-        const decoded = JWTService.verifyAccessToken(token);
+        const decoded = JWTService.verifyStudentAccessToken(token);
         
         if (!decoded) return null;
 
@@ -17,13 +17,13 @@ export class StudentAuthService {
     }
 
     async refreshStudentToken(refreshToken: string): Promise<string | null> {
-        const decoded = JWTService.verifyRefreshToken(refreshToken);
+        const decoded = JWTService.verifyStudentRefreshToken(refreshToken);
         
         if (!decoded) {
             return null;
         }
 
-        const newAccessToken = JWTService.generateAccessToken(decoded.student);
+        const newAccessToken = JWTService.generateStudentAccessToken(decoded.student);
         return newAccessToken;
     }
 }
