@@ -26,4 +26,22 @@ export class CourseUseCase {
 
         return video;
     }
+
+    async fetchAllCourse(): Promise<Course[]> {
+        try {
+            return this._courseRepository.findAllCourse();
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+            throw new Error('Failed to fetch courses');
+        }
+    }
+
+    async fetchCourseDetails( courseId: string ): Promise<Course | null> {
+        try {
+            return this._courseRepository.findCourseById(courseId);
+        } catch (error) {
+            console.error('Error fetching course details:', error);
+            throw new Error('Failed to fetch course details');
+        }
+    }
 }

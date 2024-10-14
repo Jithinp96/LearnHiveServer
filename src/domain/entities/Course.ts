@@ -13,13 +13,13 @@ export interface Review {
 export interface Comment {
     content: string;
     userId: string;
-    createdAt: Date;
 }
   
 export interface Course {
     tutorId: string;
     title: string;
     description: string;
+    shortDescription: string;
     tags: string[];
     category: string;
     price: number;
@@ -30,6 +30,7 @@ export interface Course {
     thumbnail: string;
     isBlocked: boolean;
     isApproved: boolean;
+    isListed: boolean;
     videos: Video[];
     reviews: Review[];
     comments: Comment[];

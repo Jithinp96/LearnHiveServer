@@ -32,8 +32,6 @@ export class CourseController {
     public addCourse = async(req: Request, res: Response): Promise<void> => {
         try {
             const courseData = req.body;
-            console.log("Course data in course controller: ", courseData);
-            
             const newCourse = await this._courseUseCase.addCourse(courseData);
 
             res.status(201).json(newCourse);
@@ -46,9 +44,6 @@ export class CourseController {
     public uploadThumbnail = async (req: Request, res: Response) => {
         const bucketRegion = process.env.S3_BUCKET_REGION;
         const bucketName = process.env.S3_BUCKET_NAME;
-        console.log("Reached inside upload thumbnail controller in course controller");
-        console.log("req.file: ", req.file);
-        
 
         if (!req.file) {
             console.log("No file received");
@@ -76,8 +71,6 @@ export class CourseController {
 
     public uploadVideoController = async (req: Request, res: Response) => {
         try {
-            const awsAccessKey = process.env.S3_ACCESS_KEY;
-            const secretKey = process.env.S3_SECRET_KEY;
             const bucketRegion = process.env.S3_BUCKET_REGION;
             const bucketName = process.env.S3_BUCKET_NAME;
             
@@ -112,10 +105,7 @@ export class CourseController {
     }
 
     public fetchTutorCourses = async (req: Request, res: Response) => {
-        console.log("Reached course controller");
-        
         const tutorId = req.query.id as string;
-        console.log("Tutor id: ", tutorId);
         
         if (!tutorId) {
             return res.status(400).json({ message: "Tutor ID is required" });
@@ -123,12 +113,31 @@ export class CourseController {
 
         try {
             const courses = await courseRepository.findCourseByTutorId(tutorId);
-            console.log("courses in course controller: ", courses);
-            
             res.status(200).json(courses);
         } catch (error) {
             console.error('Error fetching tutor courses:', error);
             res.status(500).json({ message: "Failed to fetch tutor's courses", details: error });
         }
     };
+
+    public fetchAllCourses = async(req: Request, res: Response) => {
+        try {
+            console.log("Reached fetchAllCourses in course controller");
+            
+            const courses = await this._courseUseCase.fetchAllCourse();
+            res.status(200).json(courses);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch courses' });
+        }
+    }
+
+    public fetchCourseDetails = async(req: Request, res: Response) => {
+        try {
+            const {courseId} = req.params
+            const course = await this._courseUseCase.fetchCourseDetails(courseId);
+            res.status(200).json(course);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch course details' });
+        }
+    }
 }

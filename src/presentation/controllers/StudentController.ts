@@ -13,10 +13,15 @@ import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
 import { ForgotPassword } from "../../application/useCases/student/ForgotPassword";
 import { ResetPassword } from "../../application/useCases/student/ResetPassword";
 import { StudentUseCase } from "../../application/useCases/student/StudentUseCase";
+import { CourseCategoryRepository } from "../../infrastructure/repositories/CourseCategoryRepository";
+import { CourseCategoryUseCases } from "../../application/useCases/admin/CourseCategory";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
 }
+
+const courseCategoryRepository = new CourseCategoryRepository();
+const courseCategoryUseCases = new CourseCategoryUseCases(courseCategoryRepository);
 
 export class StudentController {
   private _studentRepo: StudentRepository;
@@ -26,6 +31,8 @@ export class StudentController {
   private _jwtService: JWTService;
   private _forgotPasswordUseCase: ForgotPassword;
   private _resetPasswordUseCase: ResetPassword;
+  private _courseCategoryUseCases: CourseCategoryUseCases
+  private _courseCategoryRepository: CourseCategoryRepository
   private _studentUseCase: StudentUseCase;
 
   constructor() {
@@ -37,6 +44,8 @@ export class StudentController {
     this._forgotPasswordUseCase = new ForgotPassword(this._studentRepo);
     this._resetPasswordUseCase = new ResetPassword(this._studentRepo);
     this._studentUseCase = new StudentUseCase(this._studentRepo);
+    this._courseCategoryRepository = new CourseCategoryRepository();
+    this._courseCategoryUseCases= new CourseCategoryUseCases(this._courseCategoryRepository)
   }
 
   // Register a new student
@@ -162,6 +171,8 @@ export class StudentController {
 
   //LOGOUT STUDENT
   public logout = async(req: Request, res: Response) => {
+    console.log("Reached student logout controller");
+    
     const role = req.params.role;
     return LogoutStudentUseCase.execute(req, res, role);
   }
@@ -169,27 +180,24 @@ export class StudentController {
   //DAHSBOARD
   async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      // Assuming studentId is set by the middleware after authentication
       const studentId = req.userId;
-
+      
       if (!studentId) {
         res.status(401).json({ message: 'Unauthorized access' });
         return
       }
 
       // Fetch student data from repository
-      const student = await this._studentRepo.findStudentById(studentId);
+      // const student = await this._studentRepo.findStudentById(studentId);
+      const categories = await courseCategoryUseCases.getAllCategories();
 
-      if (!student) {
-        res.status(404).json({ message: 'Student not found' });
-        return
-      }
+      // if (!student) {
+      //   res.status(404).json({ message: 'Student not found' });
+      //   return
+      // }
 
       // Respond with student data (or other dashboard-related info)
-      res.status(200).json({
-        message: 'Welcome to your dashboard!',
-        student,
-      });
+      res.status(200).json({categories});
     } catch (error) {
       console.error('Error fetching dashboard:', error);
       res.status(500).json({ message: 'Internal server error' });
@@ -198,6 +206,8 @@ export class StudentController {
 
   public getProfile = async (req: Request, res: Response) => {
     const {id} = req.params;
+    console.log("Id from get profile controller: ", id);
+    
     try {
       const student = await this._studentRepo.findStudentById(id);
       

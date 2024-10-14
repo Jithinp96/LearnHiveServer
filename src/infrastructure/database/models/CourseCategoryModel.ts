@@ -16,10 +16,6 @@ const CourseCategorySchema: Schema = new Schema({
         type: Boolean,
         default: false,
     },
-    coursesCount: {
-        type: Number,
-        default: 0,
-    }
 }, { timestamps: true });
 
 export const CourseCategoryModel = mongoose.model<ICourseCategory>('CourseCategory', CourseCategorySchema);

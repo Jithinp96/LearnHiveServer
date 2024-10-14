@@ -21,7 +21,8 @@ export class JWTService {
     }
 
     static verifyAccessToken(token: string): any {
-        return jwt.verify(token, process.env.JWT_ACCESS_SECRET as string);
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET as string);
+        return {student: decoded};
     }
 
     static verifyRefreshToken(token: string): any {
