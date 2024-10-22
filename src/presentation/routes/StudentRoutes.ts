@@ -9,6 +9,7 @@ import { CourseController } from "../controllers/CourseController";
 import { upload } from "../../infrastructure/config/multerConfig"
 import { CartController } from "../controllers/CartController";
 import { PaymentController } from "../controllers/PaymentController";
+import { OrderController } from "../controllers/OrderController";
 
 const studentController = new StudentController();
 const studentRepositoryInstance = new StudentRepository();
@@ -16,6 +17,7 @@ const courseController = new CourseController();
 const cartController = new CartController()
 const studentAuthService = new StudentAuthService(studentRepositoryInstance)
 const paymentController = new PaymentController();
+const orderController = new OrderController()
 
 const studentRoutes = Router();
 
@@ -50,6 +52,9 @@ studentRoutes.get('/getcategories', courseController.getAllCategories);
 
 studentRoutes.get('/allcourses', courseController.fetchAllCourses);
 studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
+
+studentRoutes.get('/course-orders/', studentAuthMiddleware(studentAuthService), orderController.getCourseOrdersByStudent)
+studentRoutes.get('/slot-orders/', studentAuthMiddleware(studentAuthService), orderController.getSlotOrdersByStudent)
 
 studentRoutes.post('/add-to-cart', studentAuthMiddleware(studentAuthService), cartController.addCourseToCart);
 studentRoutes.get('/cart', studentAuthMiddleware(studentAuthService), cartController.fetchCart)
