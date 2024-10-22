@@ -13,9 +13,17 @@ import { ForgotPassword } from "../../application/useCases/tutor/ForgotPassword"
 import { ResetPassword } from "../../application/useCases/tutor/ResetPassword";
 import { LogoutTutorUseCase } from "../../application/useCases/tutor/LogoutTutorUseCase";
 import { TutorUseCase } from "../../application/useCases/tutor/TutorUseCase";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../../infrastructure/config/awsS3Config";
+import { TutorSlotRepository } from "../../infrastructure/repositories/TutorSlotRepository";
+
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 export class TutorController {
   private _tutorRepo: TutorRepository;
+  private _tutorSlotRepo: TutorSlotRepository;
   private _registerTutor: RegisterTutor;
   private _verifyOTPUseCase: VerifyOTPTutor;
   private _loginTutorUseCase: LoginTutorUseCase;
@@ -26,13 +34,14 @@ export class TutorController {
 
   constructor() {
       this._tutorRepo = new TutorRepository();
+      this._tutorSlotRepo = new TutorSlotRepository();
       this._registerTutor = new RegisterTutor(this._tutorRepo);
       this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
       this._jwtService = new JWTService();
       this._loginTutorUseCase = new LoginTutorUseCase(this._tutorRepo, this._jwtService);
       this._forgotPasswordUseCase = new ForgotPassword(this._tutorRepo);
       this._resetPasswordUseCase = new ResetPassword(this._tutorRepo);
-      this._tutorUseCase = new TutorUseCase(this._tutorRepo);
+      this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
   }
 
   //REGISTER TUTOR
@@ -166,9 +175,75 @@ export class TutorController {
     }
   }
 
-  public addEducation = async(req: Request, res: Response) => {
-    console.log("Reached addEducation in tutor controller");
+  public addSubject = async (req: AuthenticatedRequest, res: Response) => {
+    const tutorId = req.userId;
+    const { subjectData } = req.body;
     
+    if(!tutorId) {
+      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      return; 
+    }
+
+    try {
+        const updatedTutor = await this._tutorUseCase.addSubject(tutorId, subjectData);
+        res.status(200).json(updatedTutor);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to add subject" });
+    }
+  }
+
+  public editSubject = async (req: AuthenticatedRequest, res: Response) => {
+    const tutorId = req.userId;
+    const { subjectId, editedSubject } = req.body;
+    if(!tutorId) {
+      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      return; 
+    }
+
+    try {
+        const updatedTutor = await this._tutorUseCase.editSubject(tutorId, subjectId, editedSubject);
+        res.status(200).json(updatedTutor);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to edit subject" });
+    }
+  }
+
+  public deleteSubject = async (req: AuthenticatedRequest, res: Response) => {
+    const tutorId = req.userId;
+    const { subjectId } = req.body;
+
+    if(!tutorId) {
+      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      return; 
+    }
+
+    try {
+        const updatedTutor = await this._tutorUseCase.deleteSubject(tutorId, subjectId);
+        res.status(200).json(updatedTutor);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete subject" });
+    }
+  }
+
+  public fetchSubjects = async (req: AuthenticatedRequest, res: Response) => {
+    const tutorId = req.userId;
+
+    if (!tutorId) {
+      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      return;
+    }
+
+    try {
+      const subjects = await this._tutorUseCase.fetchSubjects(tutorId);
+      res.status(200).json({ subjects });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to fetch subjects' });
+    }
+};
+
+
+  public addEducation = async(req: Request, res: Response) => {
     const {id} = req.params;
     const { level, board, startDate, endDate, grade, institution }  = req.body;
 
@@ -180,9 +255,136 @@ export class TutorController {
         })
       }
 
-      await this._tutorUseCase.addTutorEducation(id, { level, board, startDate, endDate, grade, institution })
+      await this._tutorUseCase.addEducation(id, { level, board, startDate, endDate, grade, institution })
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  public editEducation = async(req: Request, res: Response) => {
+    const { id, educationId } = req.params;
+    const educationData = req.body;
+
+    try {
+      const updatedTutor = await this._tutorUseCase.editEducation(id, educationId, educationData);
+      res.status(200).json(updatedTutor);
+    } catch (error) {
+      console.error(error);
+    }
+    
+  }
+
+  public deleteEducation = async(req: Request, res: Response) => {
+    const { id, educationId } = req.params;
+
+    try {
+        const updatedTutor = await this._tutorUseCase.deleteEducation(id, educationId);
+        res.status(200).json(updatedTutor);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete education" });
+    }
+  }
+
+  public editProfileName = async(req: Request, res: Response) => {
+    const { id, newName } = req.body;
+    try {
+      const updatedTutor = await this._tutorUseCase.editProfileName(id, newName);
+      res.status(200).json(updatedTutor);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update name" });
+    }
+  }
+
+  public editMobileNumber = async(req: Request, res: Response) => {
+    const { id, newNumber } = req.body;
+    
+    try {
+      const updatedTutor = await this._tutorUseCase.editMobileNumber(id, newNumber);
+      res.status(200).json(updatedTutor);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update name" });
+    }
+  }
+
+  public editProfilePicture = async(req: Request, res: Response) => {
+    const bucketRegion = process.env.S3_BUCKET_REGION;
+    const bucketName = process.env.S3_BUCKET_NAME;
+
+    const{id} = req.params;
+    
+    if (!req.file) {
+        console.log("No file received");
+        return res.status(400).json({ error: 'No profile image file provided' });
+    }
+    const fileName = `${Date.now()}-${req.file.originalname}`;
+
+    const params = {
+        Bucket: bucketName,
+        Key: fileName,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+    };
+    const command = new PutObjectCommand(params)
+    await s3.send(command)
+
+    const url = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+
+    const updatedTutor = await this._tutorUseCase.editProfilePic(id, url);
+    res.status(200).json(updatedTutor);
+  }
+
+  public addSlot = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const tutorId = req.userId
+    const slotData = req.body;
+    const mergedSlotData = { tutorId, ...slotData };
+    try {
+        const newSlot = await this._tutorUseCase.addSlot(mergedSlotData);
+        res.status(201).json(newSlot);
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+  }
+
+  public editSlot = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const {slotData, slotId} = req.body;
+    try {
+        const updatedSlot = await this._tutorUseCase.editSlot(slotId, slotData);
+        if (!updatedSlot) {
+          res.status(404).json({ message: 'Slot not found' });
+          return
+        }
+        res.status(200).json(updatedSlot);
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+}
+
+  public getSlotById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const slotId = req.params.slotId;
+
+    try {
+        const slot = await this._tutorUseCase.getSlotById(slotId);
+        if (!slot) {
+          res.status(404).json({ message: 'Slot not found' });
+          return
+        }
+        res.status(200).json(slot);
+    } catch (error) {
+        res.status(400).json({ error: error });
+    }
+  }
+
+  public getAllSlotsByTutorId = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const tutorId = req.userId;
+    if(!tutorId) {
+      res.status(HttpStatusEnum.UNAUTHORIZED).json( {message: 'Unable to find tutor details. Please login again'} )
+      return
+    }
+    try {
+        const slots = await this._tutorUseCase.getAllSlotsByTutorId(tutorId);
+        res.status(200).json(slots);
+    } catch (error) {
+        res.status(400).json({ error: error });
     }
   }
 }

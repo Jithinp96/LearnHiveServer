@@ -13,7 +13,59 @@ interface Education {
 }
 
 export class StudentUseCase {
-    constructor(private _studentRepository: IStudentRepository) {}
+    constructor(
+        private _studentRepository: IStudentRepository
+    ) {}
+
+    async editProfileName(id: string, newName: string): Promise<Student | null> {
+        try {
+            const student = await this._studentRepository.findStudentById(id);
+            
+            if (!student) {
+                throw new Error("Student not found");
+            }
+            student.name = newName;
+            const updatedStudent = await this._studentRepository.updateStudent(student);
+            return updatedStudent;
+
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to update name');
+        }
+    }
+
+    async editMobileNumber(id: string, newMobile: number): Promise<Student | null> {
+        try {
+            const student = await this._studentRepository.findStudentById(id);
+            
+            if (!student) {
+                throw new Error("Student not found");
+            }
+            student.mobile = newMobile;
+            const updatedStudent = await this._studentRepository.updateStudent(student);
+            return updatedStudent;
+            
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to update name');
+        }
+    }
+
+    async editProfilePic(id: string, url: string): Promise<Student | null> {
+        try {
+            const student = await this._studentRepository.findStudentById(id);
+            
+            if (!student) {
+                throw new Error("Student not found");
+            }
+            student.profileImage = url;
+            const updatedStudent = await this._studentRepository.updateStudent(student);
+            return updatedStudent;
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to update profile Image');
+        }
+    }
     
     async addEducation(id: string, newEducationDetails: object): Promise<Student | null> {
         try {

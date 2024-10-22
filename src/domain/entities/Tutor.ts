@@ -14,6 +14,11 @@ export interface WorkExperience {
     endDate: string;
 }
 
+export interface Subjects {
+    name: string;
+    level: string
+}
+
 export interface Tutor {
     tutorId: string;
     name: string;
@@ -23,7 +28,8 @@ export interface Tutor {
     isVerified: boolean;
     isBlocked: boolean;
     role: string;
-    subjects: string[];
+    profileImage?:string;
+    subjects: Subjects[];
     education: TutorEducation[];
     workExperience: WorkExperience[];
 }

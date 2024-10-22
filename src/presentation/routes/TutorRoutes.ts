@@ -24,12 +24,29 @@ tutorRoutes.post('/login', tutorController.login);
 tutorRoutes.post('/logout/:role', tutorAuthMiddleware(tutorAuthService), tutorController.logout);
 
 tutorRoutes.get('/profile/:id', tutorAuthMiddleware(tutorAuthService), tutorController.getProfile);
-tutorRoutes.put('/profile/:id/update-education', tutorController.addEducation);
+tutorRoutes.get('/tutorprofile/:id', tutorController.getProfile);
+tutorRoutes.put("/profile/:id/add-education", tutorAuthMiddleware(tutorAuthService), tutorController.addEducation);
+tutorRoutes.put("/profile/:id/edit-education/:educationId", tutorAuthMiddleware(tutorAuthService), tutorController.editEducation);
+tutorRoutes.delete("/profile/:id/delete-education/:educationId", tutorAuthMiddleware(tutorAuthService), tutorController.deleteEducation);
+
+tutorRoutes.put('/profile/edit-name', tutorController.editProfileName)
+tutorRoutes.put('/profile/edit-mobile', tutorController.editMobileNumber)
+tutorRoutes.put('/profile/edit-profilePic/:id', upload.single('image'), tutorController.editProfilePicture)
+
+tutorRoutes.put('/profile/add-subject', tutorAuthMiddleware(tutorAuthService), tutorController.addSubject)
+tutorRoutes.put('/profile/edit-subject', tutorAuthMiddleware(tutorAuthService), tutorController.editSubject)
+tutorRoutes.put('/profile/delete-subject', tutorAuthMiddleware(tutorAuthService), tutorController.deleteSubject)
 
 tutorRoutes.post('/:id/add-course', tutorAuthMiddleware(tutorAuthService), courseController.addCourse)
 tutorRoutes.post('/upload-video', tutorAuthMiddleware(tutorAuthService), upload.single('video'), courseController.uploadVideoController)
 tutorRoutes.post('/upload-thumbnail', tutorAuthMiddleware(tutorAuthService), upload.single('image'), courseController.uploadThumbnail)
 tutorRoutes.get('/getcategories', tutorAuthMiddleware(tutorAuthService), courseController.getAllCategories);
 tutorRoutes.get('/course-list', tutorAuthMiddleware(tutorAuthService), courseController.fetchTutorCourses);
+
+tutorRoutes.get('/getSubjects', tutorAuthMiddleware(tutorAuthService), tutorController.fetchSubjects);
+tutorRoutes.post('/addslot', tutorAuthMiddleware(tutorAuthService), tutorController.addSlot)
+tutorRoutes.put('/editslot', tutorAuthMiddleware(tutorAuthService), tutorController.editSlot)
+tutorRoutes.get('/slot/:slotId', tutorAuthMiddleware(tutorAuthService), tutorController.getSlotById)
+tutorRoutes.get('/appointment', tutorAuthMiddleware(tutorAuthService), tutorController.getAllSlotsByTutorId)
 
 export default tutorRoutes;

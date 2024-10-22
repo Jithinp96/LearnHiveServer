@@ -5,11 +5,16 @@ import studentAuthMiddleware from "../../infrastructure/middlewares/StudentAuthM
 import { StudentAuthService } from "../../application/services/StudentAuthService";
 import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
 import { CourseController } from "../controllers/CourseController";
+import { upload } from "../../infrastructure/config/multerConfig"
+import { CartController } from "../controllers/CartController";
+import { PaymentController } from "../controllers/PaymentController";
 
 const studentController = new StudentController();
 const studentRepositoryInstance = new StudentRepository();
-const courseController = new CourseController()
+const courseController = new CourseController();
+const cartController = new CartController()
 const studentAuthService = new StudentAuthService(studentRepositoryInstance)
+const paymentController = new PaymentController();
 
 const studentRoutes = Router();
 
@@ -29,9 +34,25 @@ studentRoutes.put("/profile/:id/add-education", studentAuthMiddleware(studentAut
 studentRoutes.put("/profile/:id/edit-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.editEducation);
 studentRoutes.delete("/profile/:id/delete-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.deleteEducation);
 
+studentRoutes.put('/profile/edit-name', studentController.editProfileName)
+studentRoutes.put('/profile/edit-mobile', studentController.editMobileNumber)
+studentRoutes.put('/profile/edit-profilePic/:id', upload.single('image'), studentController.editProfilePicture)
+
+studentRoutes.get('/tutorprofile/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorDetails)
+studentRoutes.get('/slotbooking/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorSlotDetails)
+
+studentRoutes.post('/slotbooking/create-payment-intent', paymentController.createPaymentIntent)
+studentRoutes.post('/courseenroll/create-payment-intent', paymentController.createCoursePaymentIntent)
+
 studentRoutes.get('/getcategories', courseController.getAllCategories);
 
 studentRoutes.get('/allcourses', courseController.fetchAllCourses);
 studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
+
+studentRoutes.post('/add-to-cart', studentAuthMiddleware(studentAuthService), cartController.addCourseToCart);
+studentRoutes.get('/cart', studentAuthMiddleware(studentAuthService), cartController.fetchCart)
+studentRoutes.delete('/cart/delete/:courseId', studentAuthMiddleware(studentAuthService), cartController.deleteFromCart)
+
+studentRoutes.post('/create-checkout-session', studentAuthMiddleware(studentAuthService), cartController.payment)
 
 export default studentRoutes;

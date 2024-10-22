@@ -15,6 +15,12 @@ import { ResetPassword } from "../../application/useCases/student/ResetPassword"
 import { StudentUseCase } from "../../application/useCases/student/StudentUseCase";
 import { CourseCategoryRepository } from "../../infrastructure/repositories/CourseCategoryRepository";
 import { CourseCategoryUseCases } from "../../application/useCases/admin/CourseCategory";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../../infrastructure/config/awsS3Config";
+import { TutorModel } from "../../infrastructure/database/models/TutorModel";
+import { TutorUseCase } from "../../application/useCases/tutor/TutorUseCase";
+import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
+import { TutorSlotRepository } from "../../infrastructure/repositories/TutorSlotRepository";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -34,6 +40,9 @@ export class StudentController {
   private _courseCategoryUseCases: CourseCategoryUseCases
   private _courseCategoryRepository: CourseCategoryRepository
   private _studentUseCase: StudentUseCase;
+  private _tutorUseCase: TutorUseCase;
+  private _tutorRepo: TutorRepository;
+  private _tutorSlotRepo: TutorSlotRepository;
 
   constructor() {
     this._studentRepo = new StudentRepository();
@@ -46,6 +55,9 @@ export class StudentController {
     this._studentUseCase = new StudentUseCase(this._studentRepo);
     this._courseCategoryRepository = new CourseCategoryRepository();
     this._courseCategoryUseCases= new CourseCategoryUseCases(this._courseCategoryRepository)
+    this._tutorRepo = new TutorRepository();
+    this._tutorSlotRepo = new TutorSlotRepository();
+    this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
   }
 
   // Register a new student
@@ -244,19 +256,11 @@ export class StudentController {
   }
 
   public editEducation = async(req: Request, res: Response) => {
-    console.log("Reached edit education controller");
-    
     const { id, educationId } = req.params;
     const educationData = req.body;
 
-    console.log("id from edit education for student: ", id);
-    console.log("educationId from edit education for student: ", educationId);
-    console.log("educationData from edit education for student: ", educationData);
-
     try {
       const updatedStudent = await this._studentUseCase.editEducation(id, educationId, educationData);
-      console.log("updatedStudent from edit educaTION: ", updatedStudent);
-      
       res.status(200).json(updatedStudent);
     } catch (error) {
       console.error(error);
@@ -273,5 +277,83 @@ export class StudentController {
     } catch (error) {
         res.status(500).json({ error: "Failed to delete education" });
     }
+  }
+
+  public editProfileName = async(req: Request, res: Response) => {
+    const { id, newName } = req.body;
+    try {
+      const updatedStudent = await this._studentUseCase.editProfileName(id, newName);
+      res.status(200).json(updatedStudent);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update name" });
+    }
+  }
+
+  public editMobileNumber = async(req: Request, res: Response) => {
+    const { id, newNumber } = req.body;
+    
+    try {
+      const updatedStudent = await this._studentUseCase.editMobileNumber(id, newNumber);
+      res.status(200).json(updatedStudent);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update name" });
+    }
+  }
+
+  public fetchTutorDetails = async(req: AuthenticatedRequest, res: Response) => {
+    const { tutorId } = req.params
+    try {
+      const tutor = await TutorModel.findById(tutorId).lean();
+      if(!tutor) {
+        return res.status(HttpStatusEnum.NOT_FOUND).json({
+          message: "Tutor details not found"
+        })
+      }
+      res.json(tutor)
+    } catch (error) {
+      console.error(error);
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
+    }
+  }
+  
+  public fetchTutorSlotDetails = async(req: AuthenticatedRequest, res: Response) => {
+    const { tutorId } = req.params
+    if(!tutorId) {
+      res.status(HttpStatusEnum.UNAUTHORIZED).json( {message: 'Unable to find tutor details. Please login again'} )
+      return
+    }
+    try {
+      const slots = await this._tutorUseCase.getAllSlotsByTutorId(tutorId);
+      res.status(200).json(slots);
+    } catch (error) {
+      
+    }
+  }
+
+  public editProfilePicture = async(req: Request, res: Response) => {
+    const bucketRegion = process.env.S3_BUCKET_REGION;
+    const bucketName = process.env.S3_BUCKET_NAME;
+
+    const{id} = req.params;
+    
+    if (!req.file) {
+        console.log("No file received");
+        return res.status(400).json({ error: 'No profile image file provided' });
+    }
+    const fileName = `${Date.now()}-${req.file.originalname}`;
+
+    const params = {
+        Bucket: bucketName,
+        Key: fileName,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+    };
+    const command = new PutObjectCommand(params)
+    await s3.send(command)
+
+    const url = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+
+    const updatedStudent = await this._studentUseCase.editProfilePic(id, url);
+    res.status(200).json(updatedStudent);
   }
 }

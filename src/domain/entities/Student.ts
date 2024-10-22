@@ -16,5 +16,6 @@ export interface Student {
     isVerified: boolean;
     isBlocked: boolean;
     role: string;
+    profileImage?:string;
     education: Education[];
 }

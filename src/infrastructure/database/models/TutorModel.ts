@@ -16,6 +16,11 @@ interface WorkExperience {
   endDate: string;
 }
 
+interface Subjects {
+    name: string;
+    level: string;
+}
+
 interface TutorDocument extends Document {
   tutorId: string;
   name: string;
@@ -26,7 +31,7 @@ interface TutorDocument extends Document {
   isBlocked: boolean;
   role: 'tutor';
   profileImage: string;
-  subjects: string[];
+  subjects: Subjects[];
   education: TutorEducation[];
   workExperience: WorkExperience[];
 }
@@ -45,6 +50,11 @@ const WorkExperienceSchema: Schema = new Schema({
   designation: { type: String, required: true },
   startDate: { type: String, required: true },
   endDate: { type: String, required: true },
+});
+
+const SubjectSchema: Schema = new Schema({
+    name: { type: String, required: true },
+    level: { type: String, required: true }
 });
 
 const TutorSchema: Schema = new Schema({
@@ -86,7 +96,7 @@ const TutorSchema: Schema = new Schema({
         default: "https://cdn.pixabay.com/photo/2016/11/18/23/38/child-1837375_1280.png"
     }, 
     subjects: { 
-        type: [String], 
+        type: [SubjectSchema], 
         default: [] 
     }, 
     education: { 
