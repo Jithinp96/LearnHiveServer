@@ -1,4 +1,5 @@
 import { Router } from "express";
+import express from 'express';
 
 import { StudentController } from "../controllers/StudentController";
 import studentAuthMiddleware from "../../infrastructure/middlewares/StudentAuthMiddleware";
@@ -41,8 +42,9 @@ studentRoutes.put('/profile/edit-profilePic/:id', upload.single('image'), studen
 studentRoutes.get('/tutorprofile/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorDetails)
 studentRoutes.get('/slotbooking/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorSlotDetails)
 
-studentRoutes.post('/slotbooking/create-payment-intent', paymentController.createPaymentIntent)
-studentRoutes.post('/courseenroll/create-payment-intent', paymentController.createCoursePaymentIntent)
+studentRoutes.post('/slotbooking/create-payment-intent', studentAuthMiddleware(studentAuthService), paymentController.createPaymentIntent)
+studentRoutes.post('/courseenroll/create-payment-intent', studentAuthMiddleware(studentAuthService), paymentController.createCoursePaymentIntent)
+studentRoutes.post('/webhook', express.raw({ type: 'application/json' }), paymentController.handlePaymentWebhook);
 
 studentRoutes.get('/getcategories', courseController.getAllCategories);
 

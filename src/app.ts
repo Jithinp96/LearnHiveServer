@@ -12,7 +12,19 @@ import adminRoutes from "./presentation/routes/AdminRoutes";
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+// app.use(express.json());
+
+// Important: Configure the raw body handler for webhook BEFORE json middleware
+app.use('/api/students/webhook', express.raw({ type: 'application/json' }));
+
+// Regular JSON parsing for other routes
+app.use((req, res, next) => {
+    if (req.originalUrl === '/api/students/webhook') {
+        next();
+    } else {
+        express.json()(req, res, next);
+    }
+});
 
 const corsOptions = {
   origin: `${process.env.CORSURL}`,
