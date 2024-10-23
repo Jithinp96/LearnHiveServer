@@ -12,8 +12,8 @@ interface TutorSlotDocument extends Document {
     studentId: string;
 }
 
-const TutorSlotSchema = new Schema<TutorSlotDocument>({
-    tutorId: { type: String, required: true },
+const TutorSlotSchema: Schema = new Schema({
+    tutorId: { type: Schema.Types.ObjectId, ref: 'Tutor', required: true },
     subject: { type: String, required: true },
     level: { type: String, required: true },
     date: { type: Date, required: true },
@@ -21,7 +21,7 @@ const TutorSlotSchema = new Schema<TutorSlotDocument>({
     endTime: { type: String, required: true },
     price: { type: Number, required: true },
     isBooked: { type: Boolean, default: false },
-    studentId: { type: String, default: '' },
+    studentId: { type: Schema.Types.ObjectId, ref: 'Student', default: null },
 }, {timestamps: true});
 
 export const TutorSlotModel = model<TutorSlotDocument>('TutorSlot', TutorSlotSchema);

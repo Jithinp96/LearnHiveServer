@@ -48,7 +48,7 @@ const reviewSchema: Schema = new Schema({
     },
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
+        ref: 'Student', 
         required: true 
     }
 }, { timestamps: true });
@@ -60,7 +60,7 @@ const commentSchema: Schema = new Schema({
     },
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
+        ref: 'Student', 
         required: true 
     }
 }, { timestamps: true });
