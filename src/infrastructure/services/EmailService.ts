@@ -1,20 +1,27 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
+import { IEmailService } from '../../domain/interfaces/IEmailService';
 
-export async function sendOTPEmail(recipientEmail: string, otp: number): Promise<void> {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS,
-    },
-  });
+export class EmailService implements IEmailService {
+    private transporter;
 
-  const mailOptions = {
-    from: process.env.GMAIL_USER,
-    to: recipientEmail,
-    subject: 'OTP for Student Registration',
-    text: `Your OTP for registration is ${otp}`,
-  };
+    constructor() {
+        this.transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_PASS,
+            },
+        });
+    }
 
-  await transporter.sendMail(mailOptions);
+    async send(recipientEmail: string, message: string): Promise<void> {
+        const mailOptions = {
+            from: process.env.GMAIL_USER,
+            to: recipientEmail,
+            subject: 'OTP for Student Registration',
+            text: message,
+        };
+
+        await this.transporter.sendMail(mailOptions);
+    }
 }

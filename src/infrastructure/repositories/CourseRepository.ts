@@ -1,9 +1,9 @@
-import { Course } from "../../domain/entities/Course";
+import { ICourse } from "../../domain/entities/ICourse";
 import { ICourseRepository } from "../../domain/interfaces/ICourseRepository";
 import { CourseModel } from "../database/models/CourseModel";
 
 export class CourseRepository implements ICourseRepository {
-    async addCourse(course: Course): Promise<Course> {
+    async addCourse(course: ICourse): Promise<ICourse> {
         try {
             const newCourse = new CourseModel(course);     
             return await newCourse.save();
@@ -13,7 +13,7 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
-    async findCourseByTutorId(tutorId: string): Promise<Course[]> {
+    async findCourseByTutorId(tutorId: string): Promise<ICourse[]> {
         
         try {
             const course = await CourseModel.find({ tutorId }).populate('category', 'name');
@@ -26,7 +26,7 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
-    async findAllCourse(): Promise<Course[]> {
+    async findAllCourse(): Promise<ICourse[]> {
         try {
             const course = await CourseModel.find({ isApproved: false, isBlocked: false })
             .populate('category', 'name');
@@ -37,7 +37,7 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
-    async findCourseById(courseId: string): Promise<Course | null> {
+    async findCourseById(courseId: string): Promise<ICourse | null> {
         try {
             const course = await CourseModel.findById(courseId)
                 .populate('tutorId', 'name')

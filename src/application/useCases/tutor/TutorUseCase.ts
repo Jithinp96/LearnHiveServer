@@ -1,33 +1,11 @@
 import { ObjectId } from "mongodb";
-import { Tutor } from "../../../domain/entities/Tutor";
+import { ITutor } from "../../../domain/entities/user/ITutor";
 import { ITutorRepository } from "../../../domain/interfaces/ITutorRepository";
 
-import { TutorEducation } from "../../../domain/entities/Tutor";
+import { IEducation } from "../../../domain/entities/user/IEducation";
+import { ISubjects } from "../../../domain/entities/user/ISubjects";
 import { ITutorSlotRepository } from "../../../domain/interfaces/ITutorSlotRepository";
-import { TutorSlot } from "../../../domain/entities/TutorSlots";
-
-interface Education {
-    _id: string;
-    level: string;
-    board: string;
-    startDate: string;
-    endDate: string;
-    grade: string;
-    institution: string;  
-}
-
-interface Subjects {
-    name: string;
-    level: string
-}
-
-interface Slot {
-    _id: ObjectId;
-    date: string;
-    startTime: string;
-    endTime: string;
-    isBooked: boolean;
-}
+import { ITutorSlot } from "../../../domain/entities/ITutorSlots";
 
 export class TutorUseCase {
     constructor(
@@ -35,7 +13,7 @@ export class TutorUseCase {
         private _tutorSlotRepository: ITutorSlotRepository
     ) {}
 
-    async editProfileName(id: string, newName: string): Promise<Tutor | null> {
+    async editProfileName(id: string, newName: string): Promise<ITutor | null> {
         try {
             const tutor = await this._tutorRepository.findTutorById(id);
             
@@ -52,7 +30,7 @@ export class TutorUseCase {
         }
     }
 
-    async editMobileNumber(id: string, newMobile: number): Promise<Tutor | null> {
+    async editMobileNumber(id: string, newMobile: number): Promise<ITutor | null> {
         try {
             const tutor = await this._tutorRepository.findTutorById(id);
             
@@ -69,7 +47,7 @@ export class TutorUseCase {
         }
     }
 
-    async editProfilePic(id: string, url: string): Promise<Tutor | null> {
+    async editProfilePic(id: string, url: string): Promise<ITutor | null> {
         try {
             const tutor = await this._tutorRepository.findTutorById(id);
             
@@ -85,7 +63,7 @@ export class TutorUseCase {
         }
     }
 
-    async addEducation(id: string, newEducationDetails: object): Promise<Tutor | null> {
+    async addEducation(id: string, newEducationDetails: object): Promise<ITutor | null> {
         try {
             const validatedEducation = this.validateEducationDetails(newEducationDetails);
 
@@ -114,7 +92,7 @@ export class TutorUseCase {
             }
             const educationObjectId = new ObjectId(educationId);
             const educationIndex = tutor.education.findIndex(
-                (edu: Partial<Education>) => (edu as any)._id.equals(educationObjectId)
+                (edu: Partial<IEducation>) => (edu as any)._id.equals(educationObjectId)
             );
             
             if (educationIndex === -1) {
@@ -141,7 +119,7 @@ export class TutorUseCase {
 
             const educationObjectId = new ObjectId(educationId);
 
-            tutor.education = tutor.education.filter((edu) => {
+            tutor.education = tutor.education.filter((edu: any) => {
                 const educationWithId = edu as unknown as { _id: ObjectId };
                 return !educationWithId._id.equals(educationObjectId);
             });
@@ -155,7 +133,7 @@ export class TutorUseCase {
         }
     }
 
-    private validateEducationDetails(details: object): TutorEducation {
+    private validateEducationDetails(details: object): IEducation {
         const requiredFields = ['level', 'board', 'startDate', 'endDate', 'grade', 'institution'];
         const educationDetails = details as unknown;
 
@@ -169,17 +147,17 @@ export class TutorUseCase {
             }
         }
 
-        return educationDetails as TutorEducation;
+        return educationDetails as IEducation;
     }
 
-    async addSubject(tutorId: string, subjectDetails: object): Promise<Tutor | null> {
+    async addSubject(tutorId: string, subjectDetails: object): Promise<ITutor | null> {
         try {
             const tutor = await this._tutorRepository.findTutorById(tutorId);
             if (!tutor) {
                 throw new Error("Tutor not found");
             }
 
-            tutor.subjects.push(subjectDetails as Subjects);
+            tutor.subjects.push(subjectDetails as ISubjects);
             const updatedTutor = await this._tutorRepository.updateTutor(tutor);
             return updatedTutor;
         } catch (error) {
@@ -189,14 +167,14 @@ export class TutorUseCase {
     }
 
     // Edit Subject
-    async editSubject(tutorId: string, subjectId: string, updatedSubject: Partial<Subjects>): Promise<Tutor | null> {
+    async editSubject(tutorId: string, subjectId: string, updatedSubject: Partial<ISubjects>): Promise<ITutor | null> {
         try {
             const tutor = await this._tutorRepository.findTutorById(tutorId);
             if (!tutor) {
                 throw new Error("Tutor not found");
             }
 
-            const subjectIndex = tutor.subjects.findIndex(subject => (subject as any)._id.equals(subjectId));
+            const subjectIndex = tutor.subjects.findIndex((subject: any) => (subject as any)._id.equals(subjectId));
             if (subjectIndex === -1) {
                 throw new Error("Subject not found");
             }
@@ -211,7 +189,7 @@ export class TutorUseCase {
     }
 
     // Delete Subject
-    async deleteSubject(tutorId: string, subjectId: string): Promise<Tutor | null> {
+    async deleteSubject(tutorId: string, subjectId: string): Promise<ITutor | null> {
         try {
             const tutor = await this._tutorRepository.findTutorById(tutorId);
             if (!tutor) {
@@ -242,7 +220,7 @@ export class TutorUseCase {
         }
     }
 
-    async addSlot(slotData: TutorSlot): Promise<TutorSlot> {
+    async addSlot(slotData: ITutorSlot): Promise<ITutorSlot> {
         try {
             const newSlot = await this._tutorSlotRepository.create(slotData);
             return newSlot;
@@ -252,7 +230,7 @@ export class TutorUseCase {
     }
 
     // Edit an existing tutor slot
-    async editSlot(slotId: string, slotData: Partial<TutorSlot>): Promise<TutorSlot | null> {
+    async editSlot(slotId: string, slotData: Partial<ITutorSlot>): Promise<ITutorSlot | null> {
         try {
             const updatedSlot = await this._tutorSlotRepository.update(slotId, slotData);
             if (!updatedSlot) {
@@ -265,7 +243,7 @@ export class TutorUseCase {
     }
 
     // Get a specific slot by its ID
-    async getSlotById(slotId: string): Promise<TutorSlot | null> {
+    async getSlotById(slotId: string): Promise<ITutorSlot | null> {
         try {
             const slot = await this._tutorSlotRepository.findById(slotId);
             if (!slot) {
@@ -278,13 +256,20 @@ export class TutorUseCase {
     }
 
     // Get all slots for a specific tutor
-    async getAllSlotsByTutorId(tutorId: string): Promise<TutorSlot[]> {
+    async getAllSlotsByTutorId(tutorId: string): Promise<ITutorSlot[]> {
         try {
             const slots = await this._tutorSlotRepository.findAll(tutorId);
             return slots;
         } catch (error) {
             throw new Error('Failed to get slots: ' + error);
         }
+    }
+
+    async UpdateSlotStatus(slotId: string, studentId: string): Promise<void> {
+        await this._tutorSlotRepository.updateSlotBooking(slotId, {
+            isBooked: true,
+            studentId,
+          });
     }
     
 }

@@ -4,7 +4,7 @@ import { ITutorRepository } from '../../../domain/interfaces/ITutorRepository';
 import { TutorRegistrationDTO } from '../../dto/TutorRegistrationDTO';
 import { generateOTP } from '../../../shared/utils/OTPService';
 import { OTPModel } from '../../../infrastructure/database/models/OTPModel';
-import { sendOTPEmail } from '../../../infrastructure/services/EmailService';
+import { sendOTPEmail } from '../../../infrastructure/services/EmailServiceTutor';
 import { generateUniqueId } from '../../../shared/utils/IDService';
 
 export class RegisterTutor {
@@ -32,7 +32,7 @@ export class RegisterTutor {
                 password: hashedPassword,
                 isVerified: false,
                 isBlocked: false,
-                role: 'tutor',
+                role: 'Tutor',
                 education:[],
                 subjects:[],
                 workExperience:[]

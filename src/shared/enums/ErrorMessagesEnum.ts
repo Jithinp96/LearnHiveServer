@@ -1,18 +1,40 @@
-export enum ErrorMessageEnum {
-    // Authentication Errors
-    AUTH_INVALID_CREDENTIALS = "Invalid credentials",
-    AUTH_TOKEN_EXPIRED = "Token has expired",
-    AUTH_UNAUTHORIZED = "Unauthorized access",
+export enum DatabaseErrorEnum {
+    //Database Errors
+    DATABASE_ERROR = "A database error occurred. Please try again later!",
+}
 
-    // Validation Errors
-    VALIDATION_EMAIL_REQUIRED = "Email is required",
-    VALIDATION_INVALID_EMAIL = "Invalid email format",
-    VALIDATION_PASSWORD_TOO_SHORT = "Password must be at least 6 characters",
+export enum AuthErrorEnum {
+    //Authentication Errors
+    LOGIN_FAILED = "Failed to login. Please try again!",
+    INVALID_EMAIL_PASSWORD = "Invalid email or password. Please check the credentials!",
+    ACCOUNT_BLOCKED = "Your account is blocked. Please contact our support team!",
+    ACCOUNT_NOT_VERIFIED = "Your account is not verified. Please verify and continue!",
+    EMAIL_NOT_RECEIVED = "Email address is missing. Please try again!",
+    EMAIL_OTP_NOT_RECEIVED = "Email and OTP are required. Please enter the details and try again!",
+    INVALID_OR_EXPIRED_TOKEN = "Invalid or Expired token. Please login again!",
+    INVALID_ID = "Invalid Id! Please Login again!",
+}
 
-    // Resource Errors
-    RESOURCE_NOT_FOUND = "Resource not found",
-    RESOURCE_ALREADY_EXISTS = "Resource already exists",
+export enum StudentErrorEnum {
+    //Student Errors
+    STUDENT_NOT_FOUND = "Student details not found. Please check the credentials and try again!",
+    STUDENT_UPDATE_ERROR = "Failed to update student details. Please try again!",
+    STUDENT_ALREADY_EXISTS = "This email address is already registered. Please try with new email address!",
+    STUDENT_REGISTRATION_ERROR = "Student registration failed. Please try again later!",
+}
 
-    // Server Errors
-    SERVER_ERROR = "An internal server error occurred",
+export enum TutorErrorEnum {
+    //Tutor Errors
+    TUTOR_NOT_FOUND = "Tutor details not found. Please check the credentials and try again!",
+    TUTOR_UPDATE_ERROR = "Failed to update Tutor details. Please try again!",
+    TUTOR_ALREADY_EXISTS = "This email address is already registered. Please try with new email address!",
+    TUTOR_REGISTRATION_ERROR = "Tutor registration failed. Please try again later!",
+}
+
+export enum ProfileErrorEnum {
+    EDU_NOT_FOUND = "Education details not found, Please try again!",
+    EDU_UPDATE_FAILED = "Failed to edit education details. Please try again!",
+    EDU_ADD_FAILED = "Failed to add education details. Please try again!",
+    EDU_DELETE_FAILED = "Failed to edit education details. Please try again!",
+    
 }

@@ -1,56 +1,53 @@
-import { Student } from "../../domain/entities/Student";
+import { IStudent } from "../../domain/entities/user/IStudent";
+import { DatabaseError } from "../../domain/errors/DatabaseError";
+import { StudentNotFoundError, StudentUpdateError } from "../../domain/errors/StudentError";
 import { IStudentRepository } from "../../domain/interfaces/IStudentRepository";
 import { StudentModel } from "../database/models/StudentModel";
 
 export class StudentRepository implements IStudentRepository {
-    async createStudent(student: Student): Promise<Student> {
+    async createStudent(student: IStudent): Promise<IStudent> {
         try {
             const newStudent = new StudentModel(student);
             await newStudent.save();
-            return newStudent.toObject() as Student;
+            return newStudent.toObject() as IStudent;
         } catch (error) {
-            console.error('Error creating student:', error);
-            throw new Error('Failed to create student');
+            throw new DatabaseError();
         }
     }
 
-    async findStudentByEmail(email: string): Promise<Student | null> {
+    async findStudentByEmail(email: string): Promise<IStudent | null> {
         try {
             const student = await StudentModel.findOne({ email }).lean().exec();
-            return student as Student | null;
+            return student as IStudent | null;
         } catch (error) {
-            console.error('Error finding student by email:', error);
-            throw new Error('Failed to find student by email');
+            throw new StudentNotFoundError();
         }
     }
 
-    async updateStudent(student: Student): Promise<Student> {
+    async updateStudent(student: IStudent): Promise<IStudent> {
         try {
             await StudentModel.updateOne({ email: student.email }, student);
-            return student as Student;
+            return student as IStudent;
         } catch (error) {
-            console.error('Error updating student:', error);
-            throw new Error('Failed to update student');
+            throw new StudentUpdateError();
         }
     }
 
-    async getAllStudents(): Promise<Student[]> {
+    async getAllStudents(): Promise<IStudent[]> {
         try {
             const students = await StudentModel.find().lean().exec();
-            return students as Student[];
+            return students as IStudent[];
         } catch (error) {
-            console.error('Error fetching all students:', error);
-            throw new Error('Failed to retrieve students');
+            throw new DatabaseError()
         }
     }
 
-    async findStudentById(id: string): Promise<Student | null> {
+    async findStudentById(id: string): Promise<IStudent | null> {
         try {
             const student = await StudentModel.findById(id).lean();
-            return student as Student | null;
+            return student as IStudent | null;
         } catch (error) {
-            console.error('Error finding student by ID:', error);
-            throw new Error('Failed to find student by ID');
+            throw new DatabaseError()
         }
     }
 
@@ -61,8 +58,7 @@ export class StudentRepository implements IStudentRepository {
                 { $set: { password: hashedPassword } }
             );
         } catch (error) {
-            console.error('Error updating student password:', error);
-            throw new Error('Failed to update student password');
+            throw new StudentUpdateError()
         }
     }
 }

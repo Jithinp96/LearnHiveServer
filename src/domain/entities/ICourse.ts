@@ -1,21 +1,8 @@
-export interface Video {
-    title: string;
-    description: string;
-    url: string;
-}
+import { IComment } from "./IComment";
+import { IReview } from "./IReview";
+import { IVideo } from "./IVideo";
 
-export interface Review {
-    rating: number;
-    comment: string;
-    userId: string;
-}
-
-export interface Comment {
-    content: string;
-    userId: string;
-}
-  
-export interface Course {
+export interface ICourse {
     tutorId: string;
     title: string;
     description: string;
@@ -31,7 +18,7 @@ export interface Course {
     isBlocked: boolean;
     isApproved: boolean;
     isListed: boolean;
-    videos: Video[];
-    reviews: Review[];
-    comments: Comment[];
+    videos: IVideo[];
+    reviews: IReview[];
+    comments: IComment[];
 }

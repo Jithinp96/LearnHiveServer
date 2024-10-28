@@ -37,9 +37,9 @@ studentRoutes.put("/profile/:id/add-education", studentAuthMiddleware(studentAut
 studentRoutes.put("/profile/:id/edit-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.editEducation);
 studentRoutes.delete("/profile/:id/delete-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.deleteEducation);
 
-studentRoutes.put('/profile/edit-name', studentController.editProfileName)
-studentRoutes.put('/profile/edit-mobile', studentController.editMobileNumber)
-studentRoutes.put('/profile/edit-profilePic/:id', upload.single('image'), studentController.editProfilePicture)
+studentRoutes.put('/profile/edit-name', studentAuthMiddleware(studentAuthService), studentController.editProfileName)
+studentRoutes.put('/profile/edit-mobile', studentAuthMiddleware(studentAuthService), studentController.editMobileNumber)
+studentRoutes.put('/profile/edit-profilePic/:id', studentAuthMiddleware(studentAuthService), upload.single('image'), studentController.editProfilePicture)
 
 studentRoutes.get('/tutorprofile/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorDetails)
 studentRoutes.get('/slotbooking/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorSlotDetails)

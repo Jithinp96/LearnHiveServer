@@ -19,7 +19,7 @@ export class CourseController {
         const videoUploadService = new S3VideoUploadService
         this._courseUseCase = new CourseUseCase(courseRepository, videoUploadService);
     }
-
+    
     public getAllCategories = async (req: Request, res: Response): Promise<void> => {
         try {
             const categories = await courseCategoryUseCases.getAllCategories();
@@ -46,7 +46,6 @@ export class CourseController {
         const bucketName = process.env.S3_BUCKET_NAME;
 
         if (!req.file) {
-            console.log("No file received");
             return res.status(400).json({ error: 'No thumbnail file provided' });
         }
         const fileName = `${Date.now()}-${req.file.originalname}`;
@@ -75,7 +74,6 @@ export class CourseController {
             const bucketName = process.env.S3_BUCKET_NAME;
             
             if (!req.file) {
-                console.log("No file received");
                 return res.status(400).json({ error: 'No video file provided' });
             }
             const fileName = `${Date.now()}-${req.file.originalname}`;
@@ -122,8 +120,6 @@ export class CourseController {
 
     public fetchAllCourses = async(req: Request, res: Response) => {
         try {
-            console.log("Reached fetchAllCourses in course controller");
-            
             const courses = await this._courseUseCase.fetchAllCourse();
             res.status(200).json(courses);
         } catch (error) {

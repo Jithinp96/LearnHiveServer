@@ -8,16 +8,15 @@ import morgan from "morgan";
 import studentRoutes from "./presentation/routes/StudentRoutes";
 import tutorRoutes from "./presentation/routes/TutorRoutes";
 import adminRoutes from "./presentation/routes/AdminRoutes";
+import { errorHandler } from "./infrastructure/middlewares/ErrorHandler";
 
 dotenv.config();
 
 const app = express();
 // app.use(express.json());
 
-// Important: Configure the raw body handler for webhook BEFORE json middleware
 app.use('/api/students/webhook', express.raw({ type: 'application/json' }));
 
-// Regular JSON parsing for other routes
 app.use((req, res, next) => {
     if (req.originalUrl === '/api/students/webhook') {
         next();
@@ -35,12 +34,13 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(cookieParser());
-
 app.use(morgan('dev'));
 
 app.use("/api/students", studentRoutes);
 app.use("/api/tutor", tutorRoutes);
 app.use("/api/admin", adminRoutes);
+
+app.use(errorHandler);
 
 mongoose.connect(process.env.MONGO_URI!)
   .then(() => {

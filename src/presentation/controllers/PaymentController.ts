@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { CourseOrder } from '../../infrastructure/database/models/CourseOrderModel';
 import { SlotOrder } from '../../infrastructure/database/models/SlotOrderModel';
+import { TutorRepository } from '../../infrastructure/repositories/TutorRepository';
+import { TutorSlotRepository } from '../../infrastructure/repositories/TutorSlotRepository';
+import { TutorUseCase } from '../../application/useCases/tutor/TutorUseCase';
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -12,6 +15,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export class PaymentController {
+  private _tutorSlotRepo: TutorSlotRepository;
+  private _tutorRepo: TutorRepository;
+  private _tutorUseCase: TutorUseCase;
+
+  constructor() {
+    this._tutorSlotRepo = new TutorSlotRepository();
+    this._tutorRepo = new TutorRepository();
+    this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
+  }
+
   public createPaymentIntent = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const slotDetails = req.body;
@@ -117,9 +130,9 @@ export class PaymentController {
           }
 
           if (session.metadata.type === 'course') {
-            await this.handleCoursePayment(session, 'completed');
+            await this.handleCoursePayment(session, 'Completed');
           } else if (session.metadata.type === 'slot') {
-            await this.handleSlotPayment(session, 'completed');
+            await this.handleSlotPayment(session, 'Completed');
           }
           break;
         }
@@ -133,9 +146,9 @@ export class PaymentController {
           }
 
           if (session.metadata.type === 'course') {
-            await this.handleCoursePayment(session, 'failed');
+            await this.handleCoursePayment(session, 'Failed');
           } else if (session.metadata.type === 'slot') {
-            await this.handleSlotPayment(session, 'failed');
+            await this.handleSlotPayment(session, 'Failed');
           }
           break;
         }
@@ -154,31 +167,33 @@ export class PaymentController {
       studentId: session.metadata?.userId,
       paymentId: session.payment_intent as string,
       amount: session.amount_total ? session.amount_total / 100 : 0,
-      status: status,
+      paymentStatus: status,
       createdAt: new Date()
     };
 
     await CourseOrder.create(orderDetails);
 
-    // if (status === 'completed') {
+    // if (status === 'Completed') {
       
     // }
   }
 
-  private handleSlotPayment = async (session: Stripe.Checkout.Session, status: 'completed' | 'failed') => {
+  private handleSlotPayment = async (session: Stripe.Checkout.Session, status: 'Completed' | 'Failed') => {
     const orderDetails = {
       slotId: session.metadata?.slotId,
       studentId: session.metadata?.userId,
       paymentId: session.payment_intent as string,
       amount: session.amount_total ? session.amount_total / 100 : 0,
-      status: status,
+      paymentStatus: status,
       createdAt: new Date()
     };
 
     await SlotOrder.create(orderDetails);
 
-    // if (status === 'completed') {
-      
-    // }
+    if (status === 'Completed' && orderDetails.slotId && orderDetails.studentId) {
+      await this._tutorUseCase.UpdateSlotStatus(orderDetails.slotId, orderDetails.studentId);
+    } else {
+      console.error("Missing slotId or studentId in order details:", orderDetails);
+    }
   }
 }

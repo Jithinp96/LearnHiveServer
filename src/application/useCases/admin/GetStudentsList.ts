@@ -1,5 +1,5 @@
 import { IStudentRepository } from "../../../domain/interfaces/IStudentRepository";
-import { Student } from "../../../domain/entities/Student";
+import { IStudent } from "../../../domain/entities/user/IStudent";
 
 export class GetStudentsList {
     private _studentRepository: IStudentRepository;
@@ -8,7 +8,7 @@ export class GetStudentsList {
         this._studentRepository = studentRepository;
     }
 
-    public async execute(): Promise<Student[]> {
+    public async execute(): Promise<IStudent[]> {
         try {
             const students = await this._studentRepository.getAllStudents();
             return students;

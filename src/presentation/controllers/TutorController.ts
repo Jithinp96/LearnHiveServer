@@ -7,7 +7,7 @@ import { LoginTutorUseCase } from "../../application/useCases/tutor/TutorLogin";
 import { JWTService } from "../../shared/utils/JWTService";
 import { generateOTP } from "../../shared/utils/OTPService";
 import { OTPModel } from "../../infrastructure/database/models/OTPModel";
-import { sendOTPEmail } from "../../infrastructure/services/EmailService";
+import { sendOTPEmail } from "../../infrastructure/services/EmailServiceTutor";
 import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
 import { ForgotPassword } from "../../application/useCases/tutor/ForgotPassword";
 import { ResetPassword } from "../../application/useCases/tutor/ResetPassword";

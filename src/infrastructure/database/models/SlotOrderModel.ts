@@ -5,8 +5,8 @@ interface SlotOrder extends Document {
     tutorId: string;
     paymentId: string;
     amount: number;
-    paymentStatus: 'pending' | 'completed' | 'failed';
-    sessionStatus: 'scheduled' | 'completed' | 'cancelled';
+    paymentStatus: 'Pending' | 'Completed' | 'Failed';
+    sessionStatus: 'Scheduled' | 'Completed' | 'Cancelled';
     meetingLink?: string;
     notes?: string;
 }
@@ -32,13 +32,13 @@ const SlotOrderSchema: Schema = new Schema({
     },
     paymentStatus: {
         type: String,
-        enum: ['pending', 'completed', 'failed'],
-        default: 'pending'
+        enum: ['Pending', 'Completed', 'Failed'],
+        default: 'Pending'
     },
     sessionStatus: {
         type: String,
-        enum: ['scheduled', 'completed', 'cancelled'],
-        default: 'scheduled'
+        enum: ['Scheduled', 'Completed', 'Cancelled'],
+        default: 'Scheduled'
     },
     meetingLink: {
         type: String

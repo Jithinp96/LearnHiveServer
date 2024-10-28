@@ -1,51 +1,55 @@
 import bcrypt from "bcryptjs";
-
 import { IStudentRepository } from "../../../domain/interfaces/IStudentRepository";
 import { StudentRegistrationDTO } from "../../dto/StudentRegistrationDTO";
 import { generateUniqueId } from "../../../shared/utils/IDService";
 import { generateOTP } from "../../../shared/utils/OTPService";
-import { Student } from "../../../domain/entities/Student";
+import { IStudent } from "../../../domain/entities/user/IStudent";
+import { IEmailService } from "../../../domain/interfaces/IEmailService";
+import { RegistrationError, StudentAlreadyExistsError } from "../../../domain/errors/StudentError";
 import { OTPModel } from "../../../infrastructure/database/models/OTPModel";
-import { sendOTPEmail } from "../../../infrastructure/services/EmailService";
 
-export class RegisterStudent {
-    constructor(private _studentRepo: IStudentRepository) {}
+export class RegisterStudentUseCase {
+    constructor(
+        private _studentRepo: IStudentRepository,
+        private _emailService: IEmailService
+    ) {}
 
     async execute(data: StudentRegistrationDTO): Promise<void> {
         try {
             const existingStudent = await this._studentRepo.findStudentByEmail(data.email);
             if (existingStudent) {
-              throw new Error("Student with this email already exists");
+                throw new StudentAlreadyExistsError();
             }
-      
-            const id = `student-${generateUniqueId()}`
-      
+
+            const id = `student-${generateUniqueId()}`;
             const hashedPassword = await bcrypt.hash(data.password, 10);
-      
             const otp = generateOTP();
             console.log("Student OTP: ", otp);
-      
-            const newStudent: Student = {
-              studentId: id,
-              name: data.name,
-              email: data.email,
-              mobile: data.mobile,
-              password: hashedPassword,
-              isVerified: false,
-              role: "student",
-              isBlocked: false,
-              education:[]
+            
+            const newStudent: IStudent = {
+                studentId: id,
+                name: data.name,
+                email: data.email,
+                mobile: data.mobile,
+                password: hashedPassword,
+                isVerified: false,
+                role: "Student",
+                isBlocked: false,
+                education: []
             };
-      
-            const createdStudent = await this._studentRepo.createStudent(newStudent);
-      
+
+            await this._studentRepo.createStudent(newStudent);
+
             const expiredAt = new Date(Date.now() + 60000);
             await OTPModel.create({ email: data.email, otp, expiredAt });
-      
-            await sendOTPEmail(data.email, otp);
-          } catch (error) {
-            console.error("Registration error:", error);
-            throw new Error("Registration failed: " + error);
-          }
+
+            // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
+        } catch (error) {
+
+            if (error instanceof StudentAlreadyExistsError) {
+                throw error;
+            }
+            throw new RegistrationError();
+        }
     }
 }

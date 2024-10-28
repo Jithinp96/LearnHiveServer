@@ -1,10 +1,10 @@
-import { Tutor } from "../entities/Tutor";
+import { ITutor } from "../entities/user/ITutor";
 
 export interface ITutorRepository {
-    findTutorByEmail(email: string): Promise<Tutor | null>;
-    createTutor(tutor: Tutor): Promise<Tutor>;
-    updateTutor(tutor:Tutor): Promise<Tutor>;
-    getAllTutors(): Promise<Tutor[]>;
-    findTutorById(id: string): Promise<Tutor | null>;
+    findTutorByEmail(email: string): Promise<ITutor | null>;
+    createTutor(tutor: ITutor): Promise<ITutor>;
+    updateTutor(tutor:ITutor): Promise<ITutor>;
+    getAllTutors(): Promise<ITutor[]>;
+    findTutorById(id: string): Promise<ITutor | null>;
     updateTutorPassword(id: string, hashedPassword: string): Promise<void>;
 }

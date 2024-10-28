@@ -1,26 +1,33 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
-import { RegisterStudent } from "../../application/useCases/student/RegisterStudent";
+import { RegisterStudentUseCase } from "../../application/useCases/student/RegisterStudent";
 import { VerifyOTP } from "../../application/useCases/VerifyOTP";
-import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
-import { JWTService } from "../../shared/utils/JWTService";
 import { LoginStudentUseCase } from "../../application/useCases/student/StudentLogin";
 import { LogoutStudentUseCase } from "../../application/useCases/student/LogoutStudent";
-import { generateOTP } from "../../shared/utils/OTPService";
-import { OTPModel } from "../../infrastructure/database/models/OTPModel";
-import { sendOTPEmail } from "../../infrastructure/services/EmailService";
-import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
-import { ForgotPassword } from "../../application/useCases/student/ForgotPassword";
-import { ResetPassword } from "../../application/useCases/student/ResetPassword";
-import { StudentUseCase } from "../../application/useCases/student/StudentUseCase";
-import { CourseCategoryRepository } from "../../infrastructure/repositories/CourseCategoryRepository";
-import { CourseCategoryUseCases } from "../../application/useCases/admin/CourseCategory";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "../../infrastructure/config/awsS3Config";
-import { TutorModel } from "../../infrastructure/database/models/TutorModel";
 import { TutorUseCase } from "../../application/useCases/tutor/TutorUseCase";
+import { ForgotPasswordUseCase } from "../../application/useCases/student/ForgotPassword";
+import { ResetPasswordUseCase } from "../../application/useCases/student/ResetPassword";
+import { StudentUseCase } from "../../application/useCases/student/StudentUseCase";
+import { CourseCategoryUseCases } from "../../application/useCases/admin/CourseCategory";
+
+import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
 import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
 import { TutorSlotRepository } from "../../infrastructure/repositories/TutorSlotRepository";
+import { CourseCategoryRepository } from "../../infrastructure/repositories/CourseCategoryRepository";
+
+import { JWTService } from "../../shared/utils/JWTService";
+
+import { TutorModel } from "../../infrastructure/database/models/TutorModel";
+import { EmailService } from "../../infrastructure/services/EmailService";
+
+import { s3 } from "../../infrastructure/config/awsS3Config";
+
+import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
+import { SuccessMessageEnum } from "../../shared/enums/SuccessMessageEnum";
+import { AuthErrorEnum, StudentErrorEnum } from "../../shared/enums/ErrorMessagesEnum";
+import { ResendOTPUseCase } from "../../application/useCases/student/ResendOTPUseCase";
+import { OTPRepository } from "../../infrastructure/repositories/OTPRepository";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -31,163 +38,170 @@ const courseCategoryUseCases = new CourseCategoryUseCases(courseCategoryReposito
 
 export class StudentController {
   private _studentRepo: StudentRepository;
-  private _registerStudent: RegisterStudent;
+  private _tutorRepo: TutorRepository;
+  private _tutorSlotRepo: TutorSlotRepository;
+  private _courseCategoryRepo: CourseCategoryRepository;
+  private _otpRepo : OTPRepository;
+  private _emailService: EmailService
+
+  private _registerStudentUseCase: RegisterStudentUseCase;
   private _verifyOTPUseCase: VerifyOTP;
   private _loginStudentUseCase: LoginStudentUseCase;
   private _jwtService: JWTService;
-  private _forgotPasswordUseCase: ForgotPassword;
-  private _resetPasswordUseCase: ResetPassword;
+  private _forgotPasswordUseCase: ForgotPasswordUseCase;
+  private _resetPasswordUseCase: ResetPasswordUseCase;
   private _courseCategoryUseCases: CourseCategoryUseCases
-  private _courseCategoryRepository: CourseCategoryRepository
   private _studentUseCase: StudentUseCase;
   private _tutorUseCase: TutorUseCase;
-  private _tutorRepo: TutorRepository;
-  private _tutorSlotRepo: TutorSlotRepository;
+  private _resendOTPUseCase: ResendOTPUseCase
 
   constructor() {
     this._studentRepo = new StudentRepository();
-    this._jwtService= new JWTService()
-    this._registerStudent = new RegisterStudent(this._studentRepo);
-    this._verifyOTPUseCase = new VerifyOTP(this._studentRepo);
-    this._loginStudentUseCase = new LoginStudentUseCase(this._studentRepo, this._jwtService)
-    this._forgotPasswordUseCase = new ForgotPassword(this._studentRepo);
-    this._resetPasswordUseCase = new ResetPassword(this._studentRepo);
-    this._studentUseCase = new StudentUseCase(this._studentRepo);
-    this._courseCategoryRepository = new CourseCategoryRepository();
-    this._courseCategoryUseCases= new CourseCategoryUseCases(this._courseCategoryRepository)
+    this._courseCategoryRepo = new CourseCategoryRepository();
     this._tutorRepo = new TutorRepository();
     this._tutorSlotRepo = new TutorSlotRepository();
+    this._otpRepo = new OTPRepository()
+    this._emailService = new EmailService()
+
+    this._jwtService= new JWTService()
+    this._registerStudentUseCase = new RegisterStudentUseCase(this._studentRepo, this._emailService);
+    this._verifyOTPUseCase = new VerifyOTP(this._studentRepo);
+    this._loginStudentUseCase = new LoginStudentUseCase(this._studentRepo, this._jwtService)
+    this._forgotPasswordUseCase = new ForgotPasswordUseCase(this._studentRepo);
+    this._resetPasswordUseCase = new ResetPasswordUseCase(this._studentRepo);
+    this._studentUseCase = new StudentUseCase(this._studentRepo);
+    this._courseCategoryUseCases= new CourseCategoryUseCases(this._courseCategoryRepo)
+    this._resendOTPUseCase = new ResendOTPUseCase(this._otpRepo, this._emailService)
     this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
   }
 
   // Register a new student
-  public register = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { name, email, mobile, password } = req.body;
-      
-      await this._registerStudent.execute({ name, email, mobile, password });
-      
-      res.cookie("OTPEmail", email, {
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        secure: process.env.NODE_ENV === 'production'
-      })
+  public register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { name, email, mobile, password } = req.body;
+        
+        try {
+            await this._registerStudentUseCase.execute({ name, email, mobile, password });
+            
+            res.cookie("OTPEmail", email, {
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000,
+                secure: process.env.NODE_ENV === 'production'
+            });
 
-      res.status(HttpStatusEnum.CREATED).json({ message: "Registration successful. OTP sent to email." });
+            res.status(HttpStatusEnum.CREATED).json({
+                success: true,
+                message: SuccessMessageEnum.REGISTRATION_SUCCESS
+            });
+        } catch (error) {
+            next(error);
+        }
+  };
+
+  public resendOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const email = req.cookies.OTPEmail;
+        const message = await this._resendOTPUseCase.execute(email);
+        res.status(HttpStatusEnum.CREATED).json({ success: true, message });
     } catch (error) {
-      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "An error occurred during registration" });
+        next(error);
     }
   };
 
-  public resendOTP = async(req: Request, res: Response) => {
-    try {
+  // Verify OTP
+  public verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
+      const { otp } = req.body;
       const email = req.cookies.OTPEmail;
-      const otp = generateOTP();
-      console.log("Student OTP: ", otp);
 
-      const dbOTP = await OTPModel.findOne({ email })
-      await OTPModel.deleteOne({ _id: dbOTP?._id });
-
-      const expiredAt = new Date(Date.now() + 60000);
-      await OTPModel.create({ email: email, otp, expiredAt });
-
-      await sendOTPEmail(email, otp);
-      res.status(HttpStatusEnum.CREATED).json({ message: "OTP Resent successful." });
-    } catch (error) {
-      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "An error occurred during otp resend" });
-    }
-  }
-
-  // Verify OTP for a student
-  public verifyOTP = async (req: Request, res: Response) => {
-    
-    const { otp } = req.body;
-    const email = req.cookies.OTPEmail
-
-    if (!email || !otp) {
-      return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
-        success: false,
-        message: "Email and OTP are required",
-        error: "INVALID_INPUT"
-      });
-    }
-
-    try {
-      const isVerified = await this._verifyOTPUseCase.execute(email, parseInt(otp));
-
-      if (isVerified) {
-        res.clearCookie('OTPEmail');
-        return res.status(HttpStatusEnum.OK).json({ 
-          success: true,
-          message: "OTP verified successfully!",
-          error: null
-        });
-      } else {
-        return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
-          success: false,
-          message: "Invalid OTP. Please try again!",
-          error: "INVALID_OTP"
-        });
+      if (!email || !otp) {
+          return res.status(HttpStatusEnum.BAD_REQUEST).json({
+              success: false,
+              message: AuthErrorEnum.EMAIL_OTP_NOT_RECEIVED,
+              error: "EMAIL_OTP_NOT_RECEIVED"
+          });
       }
-    } catch (error) {
-      console.error("OTP verification failed: ", error);
-      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ 
-        success: false,
-        message: "Internal server error",
-        error: "SERVER_ERROR"
-      });
-    }
+
+      try {
+          const isVerified = await this._verifyOTPUseCase.execute(email, parseInt(otp));
+
+          if (isVerified) {
+              res.clearCookie('OTPEmail');
+              return res.status(HttpStatusEnum.OK).json({
+                  success: true,
+                  message: SuccessMessageEnum.OTP_VERIFIED,
+                  error: null
+              });
+          }
+      } catch (error) {
+          next(error);
+      }
   };
 
-  //LOGIN STUDENT
-  public login = async (req: Request, res: Response): Promise<void> => {
+// Login student
+public login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { email, password } = req.body;
- 
+
     try {
         const { accessToken, refreshToken, student } = await this._loginStudentUseCase.execute(email, password);
         
         JWTService.setTokens(res, accessToken, refreshToken, student.role);
 
         res.status(HttpStatusEnum.OK).json({
-            message: "Login successful",
-            student,
+            success: true,
+            message: SuccessMessageEnum.LOGIN_SUCCESS,
+            student
         });
     } catch (error) {
-          console.log("Error from : ", error, "Over");
+        next(error);
+    }
+};
+
+// Forgot password
+  public forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { email } = req.body;
+
+    try {
+        await this._forgotPasswordUseCase.execute(email);
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            message: SuccessMessageEnum.RESET_PASSWORD_LINK_SENT,
+        });
+    } catch (error) {
+        next(error);
+    }
+  };
+
+  // Reset password
+  public resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { token } = req.query;
+    const { newPassword } = req.body;
+
+    try {
+        await this._resetPasswordUseCase.execute(token as string, newPassword);
         
-          res.status(HttpStatusEnum.UNAUTHORIZED).json({
-          success: false,
-          message: error || "Login failed",
-          error: "AuthenticationFailed"
-      });
-    }
-  }
-
-  public forgotPassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      await this._forgotPasswordUseCase.execute(req, res);
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            message: 'Password successfully reset.',
+        });
     } catch (error) {
-      res.status(500).json({ message: 'Internal Server Error' });
+        next(error);
     }
   };
 
-  public resetPassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      console.log("Reached Reset password controller");
+  // Logout student
+  public logout = async(req: Request, res: Response, next: NextFunction) => {
+      const role = req.params.role;
       
-      await this._resetPasswordUseCase.execute(req, res);
-    } catch (error) {
-      res.status(500).json({ message: 'Internal Server Error' });
-    }
+      try {
+          await LogoutStudentUseCase.execute(req, res, role);
+          res.status(HttpStatusEnum.OK).json({
+              success: true,
+              message: SuccessMessageEnum.LOGOUT_SUCCESS
+          });
+      } catch (error) {
+          next(error);
+      }
   };
-
-  //LOGOUT STUDENT
-  public logout = async(req: Request, res: Response) => {
-    console.log("Reached student logout controller");
-    
-    const role = req.params.role;
-    return LogoutStudentUseCase.execute(req, res, role);
-  }
 
   //DAHSBOARD
   async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -198,17 +212,7 @@ export class StudentController {
         res.status(401).json({ message: 'Unauthorized access' });
         return
       }
-
-      // Fetch student data from repository
-      // const student = await this._studentRepo.findStudentById(studentId);
       const categories = await courseCategoryUseCases.getAllCategories();
-
-      // if (!student) {
-      //   res.status(404).json({ message: 'Student not found' });
-      //   return
-      // }
-
-      // Respond with student data (or other dashboard-related info)
       res.status(200).json({categories});
     } catch (error) {
       console.error('Error fetching dashboard:', error);
@@ -216,89 +220,169 @@ export class StudentController {
     }
   }
 
-  public getProfile = async (req: Request, res: Response) => {
-    const {id} = req.params;
-    console.log("Id from get profile controller: ", id);
+  public getProfile = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const studentId = req.userId;
+    if (!studentId) {
+        return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+            success: false,
+            message: AuthErrorEnum.INVALID_ID
+        });
+    }
+    try {
+        const student = await this._studentUseCase.getProfile(studentId);
+        if (!student) {
+            return res.status(HttpStatusEnum.NOT_FOUND).json({
+                success: false,
+                message: StudentErrorEnum.STUDENT_NOT_FOUND
+            });
+        }
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            data: student
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+public addEducation = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const studentId = req.userId;
+    if (!studentId) {
+        return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+            success: false,
+            message: AuthErrorEnum.INVALID_ID
+        });
+    }
+    try {
+      const updatedStudent = await this._studentUseCase.addEducation(studentId, req.body);
+
+      res.status(HttpStatusEnum.OK).json({
+          success: true,
+          message: SuccessMessageEnum.UPDATE_EDUCATION_SUCCESS,
+          data: updatedStudent
+      });
+    } catch (error) {
+        next(error);
+    }
+};
+
+public editEducation = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const studentId = req.userId;
+    const { educationId } = req.params;
+    if (!studentId) {
+      return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+          success: false,
+          message: AuthErrorEnum.INVALID_ID
+      });
     
-    try {
-      const student = await this._studentRepo.findStudentById(id);
-      
-      if(!student) {
-        return res.status(HttpStatusEnum.NOT_FOUND).json({
-          message: "Student details not found"
-        })
-      }
-      res.json(student)
-    } catch (error) {
-      console.error(error);
-      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
     }
-  }
-
-  public addEducation = async(req: Request, res: Response) => {
-    const {id} = req.params;
-    const { level, board, startDate, endDate, grade, institution }  = req.body;
-    
     try {
-      const student = await this._studentRepo.findStudentById(id);
-      
-      if(!student) {
-        return res.status(HttpStatusEnum.NOT_FOUND).json({
-          message: "Student details not found"
-        })
-      }
+        const updatedStudent = await this._studentUseCase.editEducation(studentId, educationId, req.body);
 
-      await this._studentUseCase.addEducation(id, { level, board, startDate, endDate, grade, institution })
-
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            message: SuccessMessageEnum.UPDATE_EDUCATION_SUCCESS,
+            data: updatedStudent
+        });
     } catch (error) {
-      console.error(error);
+        next(error);
     }
-  }
+};
 
-  public editEducation = async(req: Request, res: Response) => {
-    const { id, educationId } = req.params;
-    const educationData = req.body;
-
+public deleteEducation = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const studentId = req.userId;
+    const { educationId } = req.params;
+    if (!studentId) {
+      return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+          success: false,
+          message: AuthErrorEnum.INVALID_ID
+      });
+    }
     try {
-      const updatedStudent = await this._studentUseCase.editEducation(id, educationId, educationData);
-      res.status(200).json(updatedStudent);
+        const updatedStudent = await this._studentUseCase.deleteEducation(studentId, educationId);
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            message: SuccessMessageEnum.UPDATE_EDUCATION_SUCCESS,
+            data: updatedStudent
+        });
     } catch (error) {
-      console.error(error);
+        next(error);
     }
-    
-  }
+};
 
-  public deleteEducation = async(req: Request, res: Response) => {
-    const { id, educationId } = req.params;
-
-    try {
-        const updatedStudent = await this._studentUseCase.deleteEducation(id, educationId);
-        res.status(200).json(updatedStudent);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to delete education" });
-    }
-  }
-
-  public editProfileName = async(req: Request, res: Response) => {
+public editProfileName = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const { id, newName } = req.body;
-    try {
-      const updatedStudent = await this._studentUseCase.editProfileName(id, newName);
-      res.status(200).json(updatedStudent);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update name" });
-    }
-  }
 
-  public editMobileNumber = async(req: Request, res: Response) => {
-    const { id, newNumber } = req.body;
-    
     try {
-      const updatedStudent = await this._studentUseCase.editMobileNumber(id, newNumber);
-      res.status(200).json(updatedStudent);
+        const updatedStudent = await this._studentUseCase.editProfileName(id, newName);
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            data: updatedStudent
+        });
     } catch (error) {
-      res.status(500).json({ error: "Failed to update name" });
+        next(error);
     }
+};
+
+public editMobileNumber = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  console.log("Reached edit mobile number");
+  const studentId = req.userId  
+  const { newMobile } = req.body;
+  console.log("studentId: ", studentId);
+  console.log("newMobile: ", newMobile);
+  
+  if (!studentId) {
+    return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+      success: false,
+      message: AuthErrorEnum.INVALID_ID
+    });
   }
+    try {
+      const updatedStudent = await this._studentUseCase.editMobileNumber(studentId, newMobile);
+
+      res.status(HttpStatusEnum.OK).json({
+          success: true,
+          data: updatedStudent
+      });
+    } catch (error) {
+        next(error);
+    }
+};
+
+public editProfilePicture = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    if (!req.file) {
+        return res.status(HttpStatusEnum.BAD_REQUEST).json({ error: 'No profile image file provided' });
+    }
+
+    const fileName = `${Date.now()}-${req.file.originalname}`;
+    const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: fileName,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+    };
+
+    const command = new PutObjectCommand(params);
+    await s3.send(command);
+
+    const url = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.S3_BUCKET_REGION}.amazonaws.com/${fileName}`;
+
+    try {
+        const updatedStudent = await this._studentUseCase.editProfilePic(id, url);
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            data: updatedStudent
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
   public fetchTutorDetails = async(req: AuthenticatedRequest, res: Response) => {
     const { tutorId } = req.params
@@ -330,30 +414,30 @@ export class StudentController {
     }
   }
 
-  public editProfilePicture = async(req: Request, res: Response) => {
-    const bucketRegion = process.env.S3_BUCKET_REGION;
-    const bucketName = process.env.S3_BUCKET_NAME;
+  // public editProfilePicture = async(req: Request, res: Response) => {
+  //   const bucketRegion = process.env.S3_BUCKET_REGION;
+  //   const bucketName = process.env.S3_BUCKET_NAME;
 
-    const{id} = req.params;
+  //   const{id} = req.params;
     
-    if (!req.file) {
-        console.log("No file received");
-        return res.status(400).json({ error: 'No profile image file provided' });
-    }
-    const fileName = `${Date.now()}-${req.file.originalname}`;
+  //   if (!req.file) {
+  //       console.log("No file received");
+  //       return res.status(400).json({ error: 'No profile image file provided' });
+  //   }
+  //   const fileName = `${Date.now()}-${req.file.originalname}`;
 
-    const params = {
-        Bucket: bucketName,
-        Key: fileName,
-        Body: req.file.buffer,
-        ContentType: req.file.mimetype,
-    };
-    const command = new PutObjectCommand(params)
-    await s3.send(command)
+  //   const params = {
+  //       Bucket: bucketName,
+  //       Key: fileName,
+  //       Body: req.file.buffer,
+  //       ContentType: req.file.mimetype,
+  //   };
+  //   const command = new PutObjectCommand(params)
+  //   await s3.send(command)
 
-    const url = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+  //   const url = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
 
-    const updatedStudent = await this._studentUseCase.editProfilePic(id, url);
-    res.status(200).json(updatedStudent);
-  }
+  //   const updatedStudent = await this._studentUseCase.editProfilePic(id, url);
+  //   res.status(200).json(updatedStudent);
+  // }
 }

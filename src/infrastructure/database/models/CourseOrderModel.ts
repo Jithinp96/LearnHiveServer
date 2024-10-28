@@ -5,10 +5,10 @@ interface CourseOrder extends Document {
   courseId: string;
   paymentId: string;
   amount: number;
-  paymentStatus: 'pending' | 'completed' | 'failed';
+  paymentStatus: 'Pending' | 'Completed' | 'Failed';
   purchaseDate: Date;
   isActive: boolean;
-  completionStatus: 'not-started' | 'in-progress' | 'completed';
+  completionStatus: 'Not-Started' | 'In-Progress' | 'Completed';
   lastAccessedDate: Date;
 }
 
@@ -33,8 +33,8 @@ const CourseOrderSchema: Schema = new Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'completed', 'failed'],
-    default: 'pending'
+    enum: ['Pending', 'Completed', 'Failed'],
+    default: 'Pending'
   },
   purchaseDate: {
     type: Date,
@@ -46,8 +46,8 @@ const CourseOrderSchema: Schema = new Schema({
   },
   completionStatus: {
     type: String,
-    enum: ['not-started', 'in-progress', 'completed'],
-    default: 'not-started'
+    enum: ['Not-Started', 'In-Progress', 'Completed'],
+    default: 'Not-Started'
   },
   lastAccessedDate: {
     type: Date,

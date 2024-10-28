@@ -23,7 +23,7 @@ export class OrderController {
 
         try {
             const orders = await this._orderUseCase.getCourseOrders(studentId);
-            console.log("course orders: ", orders);
+            console.log("Orders: ", orders);
             
             return res.status(200).json(orders);
         } catch (error) {
@@ -41,7 +41,6 @@ export class OrderController {
 
         try {
             const orders = await this._orderUseCase.getSlotOrders(studentId);
-            console.log("slot orders: ", orders);
             
             return res.status(200).json(orders);
         } catch (error) {

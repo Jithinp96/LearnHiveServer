@@ -1,4 +1,4 @@
-import { Course } from '../entities/Course';
+import { Course } from '../entities/ICourse';
   
 export interface ICourseRepository {
     addCourse(course: Course): Promise<Course>;

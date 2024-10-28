@@ -1,156 +1,116 @@
 import { ObjectId } from "mongodb";
-import { Student } from "../../../domain/entities/Student";
+import { IStudent } from "../../../domain/entities/user/IStudent";
 import { IStudentRepository } from "../../../domain/interfaces/IStudentRepository";
-
-interface Education {
-    _id: string;
-    level: string;
-    board: string;
-    startDate: string;
-    endDate: string;
-    grade: string;
-    institution: string;  
-}
+import { StudentNotFoundError, StudentUpdateError } from "../../../domain/errors/StudentError";
+import { ProfileErrorEnum } from "../../../shared/enums/ErrorMessagesEnum";
+import { IEducation } from "../../../domain/entities/user/IEducation";
+import { IEducationWithId } from "../../../domain/entities/user/IEducation";
 
 export class StudentUseCase {
-    constructor(
-        private _studentRepository: IStudentRepository
-    ) {}
+    constructor(private _studentRepository: IStudentRepository) {}
 
-    async editProfileName(id: string, newName: string): Promise<Student | null> {
-        try {
-            const student = await this._studentRepository.findStudentById(id);
-            
-            if (!student) {
-                throw new Error("Student not found");
-            }
-            student.name = newName;
-            const updatedStudent = await this._studentRepository.updateStudent(student);
-            return updatedStudent;
-
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to update name');
+    async getProfile(id: string): Promise<IStudent> {
+        const student = await this._studentRepository.findStudentById(id);        
+        if (!student) {
+            throw new StudentNotFoundError();
         }
+        return student;
     }
 
-    async editMobileNumber(id: string, newMobile: number): Promise<Student | null> {
-        try {
-            const student = await this._studentRepository.findStudentById(id);
-            
-            if (!student) {
-                throw new Error("Student not found");
-            }
-            student.mobile = newMobile;
-            const updatedStudent = await this._studentRepository.updateStudent(student);
-            return updatedStudent;
-            
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to update name');
+    async editProfileName(id: string, newName: string): Promise<IStudent> {
+        const student = await this._studentRepository.findStudentById(id);
+
+        if (!student) {
+            throw new StudentNotFoundError();
         }
+
+        student.name = newName;
+        return await this._studentRepository.updateStudent(student);
     }
 
-    async editProfilePic(id: string, url: string): Promise<Student | null> {
-        try {
-            const student = await this._studentRepository.findStudentById(id);
-            
-            if (!student) {
-                throw new Error("Student not found");
-            }
-            student.profileImage = url;
-            const updatedStudent = await this._studentRepository.updateStudent(student);
-            return updatedStudent;
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to update profile Image');
+    async editMobileNumber(id: string, newMobile: number): Promise<IStudent> {
+        const student = await this._studentRepository.findStudentById(id);
+
+        if (!student) {
+            throw new StudentNotFoundError();
         }
-    }
-    
-    async addEducation(id: string, newEducationDetails: object): Promise<Student | null> {
-        try {
-            const validatedEducation = this.validateEducationDetails(newEducationDetails);
 
-            const student = await this._studentRepository.findStudentById(id);
-            
-            if (!student) {
-                throw new Error("Student not found");
-            }
-
-            student.education.push(validatedEducation);
-
-            return await this._studentRepository.updateStudent(student);
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to add education');
-        }
+        student.mobile = newMobile;
+        return await this._studentRepository.updateStudent(student);
     }
 
-    async editEducation(studentId: string, educationId: string, educationData: any) {
-        
-        try {
-            const student = await this._studentRepository.findStudentById(studentId);
-        
-            if (!student) {
-                throw new Error("Student not found");
-            }
-            const educationObjectId = new ObjectId(educationId);
-            const educationIndex = student.education.findIndex(
-                (edu: Partial<Education>) => (edu as any)._id.equals(educationObjectId)
-            );
-            
-            if (educationIndex === -1) {
-                throw new Error("Education record not found");
-            }
+    async editProfilePic(id: string, url: string): Promise<IStudent> {
+        const student = await this._studentRepository.findStudentById(id);
 
-            student.education[educationIndex] = { ...student.education[educationIndex], ...educationData };
-
-            const updatedStudent = await this._studentRepository.updateStudent(student);
-
-            return updatedStudent;
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to edit education');
+        if (!student) {
+            throw new StudentNotFoundError();
         }
+
+        student.profileImage = url;
+        return await this._studentRepository.updateStudent(student);
+    }
+
+    async addEducation(id: string, newEducationDetails: IEducation): Promise<IStudent> {
+        const validatedEducation = this.validateEducationDetails(newEducationDetails);
+
+        const student = await this._studentRepository.findStudentById(id);
+
+        if (!student) {
+            throw new StudentNotFoundError();
+        }
+
+        student.education.push(validatedEducation);
+
+        return await this._studentRepository.updateStudent(student);
+    }
+
+    async editEducation(studentId: string, educationId: string, educationData: Partial<IEducation>) {
+        const student = await this._studentRepository.findStudentById(studentId);
+
+        if (!student) {
+            throw new StudentNotFoundError();
+        }
+
+        const educationObjectId = new ObjectId(educationId);
+        const educationIndex = student.education.findIndex(
+            (edu: Partial<IEducation>) => (edu as any)._id.equals(educationObjectId)
+        );
+
+        if (educationIndex === -1) {
+            throw new Error(ProfileErrorEnum.EDU_NOT_FOUND);
+        }
+
+        student.education[educationIndex] = { ...student.education[educationIndex], ...educationData };
+
+        return await this._studentRepository.updateStudent(student);
     }
 
     async deleteEducation(studentId: string, educationId: string) {
-        try {
-            const student = await this._studentRepository.findStudentById(studentId);
-            if (!student) {
-                throw new Error("Student not found");
-            }
+        const student = await this._studentRepository.findStudentById(studentId);
 
-            const educationObjectId = new ObjectId(educationId);
-
-            student.education = student.education.filter((edu) => {
-                const educationWithId = edu as unknown as { _id: ObjectId };
-                return !educationWithId._id.equals(educationObjectId);
-            });
-
-            const updatedStudent = await this._studentRepository.updateStudent(student);
-
-            return updatedStudent;
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to delete education');
+        if (!student) {
+            throw new StudentNotFoundError();
         }
+
+        const educationObjectId = new ObjectId(educationId);
+        student.education = student.education.filter((edu: any) => {
+            const educationWithId = edu as unknown as { _id: ObjectId };
+            return !educationWithId._id.equals(educationObjectId);
+        });
+
+        return await this._studentRepository.updateStudent(student);
     }
 
-    private validateEducationDetails(details: object): Education {
+    private validateEducationDetails(details: Partial<IEducation>): IEducation {
         const requiredFields = ['level', 'board', 'startDate', 'endDate', 'grade', 'institution'];
-        const educationDetails = details as unknown;
+        const educationDetails = details as IEducation;
 
-        if (typeof educationDetails !== 'object' || educationDetails === null) {
-            throw new Error('Invalid education details format');
-        }
-
-        for (const field of requiredFields) {
+        requiredFields.forEach(field => {
             if (!(field in educationDetails)) {
                 throw new Error(`Missing required field: ${field}`);
             }
-        }
+        });
 
-        return educationDetails as Education;
+        return educationDetails;
     }
 }

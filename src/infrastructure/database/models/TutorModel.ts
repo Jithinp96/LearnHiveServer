@@ -1,25 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface TutorEducation {
-  level: string;
-  board: string;
-  startDate: string;
-  endDate: string;
-  grade: string;
-  institution: string;
-}
+import { IEducation } from "../../../domain/entities/user/IEducation";
+import { ISubjects } from "../../../domain/entities/user/ISubjects";
+import { IWorkExperience } from "../../../domain/entities/user/IWorkExperience";
 
-interface WorkExperience {
-  institution: string;
-  designation: string;
-  startDate: string;
-  endDate: string;
-}
-
-interface Subjects {
-    name: string;
-    level: string;
-}
+import { ProfileFieldsSchema } from "../schemas/profileFieldsSchema";
+import { EducationSchema } from "../schemas/educationSchema";
+import { SubjectSchema } from "../schemas/subjectSchema";
+import { WorkExperienceSchema } from "../schemas/workExperienceSchema";
 
 interface TutorDocument extends Document {
   tutorId: string;
@@ -29,84 +17,23 @@ interface TutorDocument extends Document {
   password: string;
   isVerified: boolean;
   isBlocked: boolean;
-  role: 'tutor';
+  role: 'Tutor';
   profileImage: string;
-  subjects: Subjects[];
-  education: TutorEducation[];
-  workExperience: WorkExperience[];
+  subjects: ISubjects[];
+  education: IEducation[];
+  workExperience: IWorkExperience[];
 }
-
-const EducationSchema: Schema = new Schema({
-  level: { type: String, required: true },
-  board: { type: String, required: true },
-  startDate: { type: String, required: true },
-  endDate: { type: String, required: true },
-  grade: { type: String, required: true },
-  institution: { type: String, required: true },
-});
-
-const WorkExperienceSchema: Schema = new Schema({
-  institution: { type: String, required: true },
-  designation: { type: String, required: true },
-  startDate: { type: String, required: true },
-  endDate: { type: String, required: true },
-});
-
-const SubjectSchema: Schema = new Schema({
-    name: { type: String, required: true },
-    level: { type: String, required: true }
-});
 
 const TutorSchema: Schema = new Schema({
     tutorId: { 
         type: String,
         required: true 
     },
-    name: { 
-        type: String, 
-        required: true 
-    },
-    email: { 
-        type: String, 
-        required: true, 
-        unique: true 
-    },
-    mobile: { 
-        type: Number, 
-        required: true 
-    },
-    password: { 
-        type: String, 
-        required: true 
-    },
-    isVerified: { 
-        type: Boolean, 
-        default: false 
-    },
-    isBlocked: { 
-        type: Boolean, 
-        default: false 
-    },
-    role: { 
-        type: String, 
-        default: 'tutor' 
-    },
-    profileImage: { 
-        type: String, 
-        default: "https://cdn.pixabay.com/photo/2016/11/18/23/38/child-1837375_1280.png"
-    }, 
-    subjects: { 
-        type: [SubjectSchema], 
-        default: [] 
-    }, 
-    education: { 
-        type: [EducationSchema], 
-        default: [] 
-    }, 
-    workExperience: { 
-        type: [WorkExperienceSchema], 
-        default: [] 
-    },
+    ...ProfileFieldsSchema.obj,
+    role: { type: String, enum: ['Tutor'], default: 'Tutor' },
+    subjects: [SubjectSchema], 
+    education: [EducationSchema],
+    workExperience: [WorkExperienceSchema],
 }, { timestamps: true });
 
 export const TutorModel = mongoose.model<TutorDocument>("Tutor", TutorSchema);

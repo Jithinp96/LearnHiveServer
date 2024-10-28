@@ -1,9 +1,9 @@
-import { Tutor } from "../../domain/entities/Tutor";
+import { ITutor } from "../../domain/entities/user/ITutor";
 import { ITutorRepository } from "../../domain/interfaces/ITutorRepository";
 import { TutorModel } from "../database/models/TutorModel";
 
 export class TutorRepository implements ITutorRepository {
-    async createTutor(tutor: Tutor): Promise<Tutor> {
+    async createTutor(tutor: ITutor): Promise<ITutor> {
         try {
             const newTutor = new TutorModel(tutor);
             await newTutor.save();
@@ -14,7 +14,7 @@ export class TutorRepository implements ITutorRepository {
         }
     }
 
-    async findTutorByEmail(email: string): Promise<Tutor | null> {
+    async findTutorByEmail(email: string): Promise<ITutor | null> {
         try {
             return await TutorModel.findOne({ email }).lean().exec();
         } catch (error) {
@@ -23,7 +23,7 @@ export class TutorRepository implements ITutorRepository {
         }
     }
 
-    async updateTutor(tutor: Tutor): Promise<Tutor> {
+    async updateTutor(tutor: ITutor): Promise<ITutor> {
         try {
             await TutorModel.updateOne({ email: tutor.email }, tutor);
             return tutor;
@@ -33,20 +33,20 @@ export class TutorRepository implements ITutorRepository {
         }
     }
 
-    async getAllTutors(): Promise<Tutor[]> {
+    async getAllTutors(): Promise<ITutor[]> {
         try {
             const tutors = await TutorModel.find().lean().exec();
-            return tutors as Tutor[];
+            return tutors as ITutor[];
         } catch (error) {
             console.error('Error fetching all tutors:', error);
             throw new Error('Failed to retrieve tutors');
         }
     }
 
-    async findTutorById(id: string): Promise<Tutor | null> {
+    async findTutorById(id: string): Promise<ITutor | null> {
         try {
             const tutor = await TutorModel.findById(id).lean();
-            return tutor as Tutor | null
+            return tutor as ITutor | null
         } catch (error) {
             console.error('Error finding tutor by ID:', error);
             throw new Error('Failed to find tutor by ID');

@@ -1,4 +1,4 @@
-export interface TutorSlot {
+export interface ITutorSlot {
     tutorId: string;
     subject: string;
     level: string;

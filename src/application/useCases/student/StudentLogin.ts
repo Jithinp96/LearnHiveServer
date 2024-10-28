@@ -1,6 +1,8 @@
+import bcrypt from 'bcryptjs';
+
 import { IStudentRepository } from "../../../domain/interfaces/IStudentRepository";
 import { JWTService } from "../../../shared/utils/JWTService";
-import bcrypt from 'bcryptjs';
+import { InvalidCredentialsError, AccountBlockedError, AccountNotVerifiedError, LoginFailed } from '../../../domain/errors/AuthError';
 
 export class LoginStudentUseCase {
     
@@ -17,20 +19,20 @@ export class LoginStudentUseCase {
             const student = await this._studentRepo.findStudentByEmail(email);
         
             if (!student) {
-                throw new Error("Invalid email or password");
+                throw new InvalidCredentialsError();
             }
 
             if (student.isBlocked) {
-                throw new Error("Your account is blocked");
+                throw new AccountBlockedError();
             }
 
             if (!student.isVerified) {
-                throw new Error("Your account is not verified");
+                throw new AccountNotVerifiedError();
             }
 
             const isMatch = await bcrypt.compare(password, student.password);
             if (!isMatch) {
-                throw new Error("Invalid email or password");
+                throw new InvalidCredentialsError();
             }
 
             const accessToken = JWTService.generateStudentAccessToken( student )
@@ -38,7 +40,7 @@ export class LoginStudentUseCase {
             
             return { accessToken, refreshToken, student };
         } catch (error) {
-            throw new Error("Login Failed");
+            throw new LoginFailed();
         }
     }
 }

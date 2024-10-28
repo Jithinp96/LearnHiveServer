@@ -1,8 +1,9 @@
-import { TutorSlot } from "../entities/TutorSlots";
+import { ITutorSlot } from "../entities/ITutorSlots";
 
 export interface ITutorSlotRepository{
-    create(slotData: TutorSlot): Promise<TutorSlot>;
-    update(id: string, slotData: Partial<TutorSlot>): Promise<TutorSlot | null>;
-    findById(id: string): Promise<TutorSlot | null>;
-    findAll(tutorId: string): Promise<TutorSlot[]>;
+    create(slotData: ITutorSlot): Promise<ITutorSlot>;
+    update(id: string, slotData: Partial<ITutorSlot>): Promise<ITutorSlot | null>;
+    updateSlotBooking(slotId: string, updateData: { isBooked: boolean; studentId: string }): Promise<void>;
+    findById(id: string): Promise<ITutorSlot | null>;
+    findAll(tutorId: string): Promise<ITutorSlot[]>;
 }

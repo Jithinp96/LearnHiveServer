@@ -22,15 +22,15 @@ adminRoutes.get('/students', adminAuthMiddleware(adminAuthService), (req, res) =
 adminRoutes.get('/student/:id', adminAuthMiddleware(adminAuthService), (req, res) => adminController.getStudentById(req, res));
 adminRoutes.patch('/student/:id/block', adminAuthMiddleware(adminAuthService), (req, res) => adminController.blockStudent(req, res));
 
-adminRoutes.get('/tutors', (req, res) => adminController.getAllTutors(req, res));
-adminRoutes.get('/tutor/:id', (req, res) => adminController.getTutorById(req, res));
-adminRoutes.patch('/tutor/:id/block', (req, res) => adminController.blockTutor(req, res));
+adminRoutes.get('/tutors', adminAuthMiddleware(adminAuthService), (req, res) => adminController.getAllTutors(req, res));
+adminRoutes.get('/tutor/:id', adminAuthMiddleware(adminAuthService), (req, res) => adminController.getTutorById(req, res));
+adminRoutes.patch('/tutor/:id/block', adminAuthMiddleware(adminAuthService), (req, res) => adminController.blockTutor(req, res));
 
-adminRoutes.post("/course-category/add", adminController.createCategory);
-adminRoutes.get("/course-category", adminController.getAllCategories);
-adminRoutes.patch("/course-category/toggle-status/:id", adminController.toggleCategoryStatus);
-adminRoutes.put('/course-category/edit/:id', adminController.updateCategory);
+adminRoutes.post("/course-category/add", adminAuthMiddleware(adminAuthService), adminController.createCategory);
+adminRoutes.get("/course-category", adminAuthMiddleware(adminAuthService), adminController.getAllCategories);
+adminRoutes.patch("/course-category/toggle-status/:id", adminAuthMiddleware(adminAuthService), adminController.toggleCategoryStatus);
+adminRoutes.put('/course-category/edit/:id', adminAuthMiddleware(adminAuthService), adminController.updateCategory);
 
-adminRoutes.get('/courses', courseController.fetchAllCourses);
+adminRoutes.get('/courses', adminAuthMiddleware(adminAuthService), courseController.fetchAllCourses);
 
 export default adminRoutes;

@@ -1,10 +1,10 @@
-import { Student } from "../entities/Student";
+import { IStudent } from "../entities/user/IStudent";
 
 export interface IStudentRepository {
-    createStudent(student: Student): Promise<Student>;
-    findStudentByEmail(email: string): Promise<Student | null>;
-    updateStudent(student: Student): Promise<Student>;
-    getAllStudents(): Promise<Student[]>;
-    findStudentById(id: string): Promise<Student | null>;
+    createStudent(student: IStudent): Promise<IStudent>;
+    findStudentByEmail(email: string): Promise<IStudent | null>;
+    updateStudent(student: IStudent): Promise<IStudent>;
+    getAllStudents(): Promise<IStudent[]>;
+    findStudentById(id: string): Promise<IStudent | null>;
     updateStudentPassword(id: string, hashedPassword: string): Promise<void>;
 }

@@ -1,5 +1,5 @@
-import { CourseOrder } from "../entities/CourseOrder";
-import { SlotOrder } from "../entities/SlotOrder";
+import { CourseOrder } from "../entities/ICourseOrder";
+import { SlotOrder } from "../entities/ISlotOrder";
 
 export interface IOrderRepository {
   getCourseOrderByStudentId(studentId: string): Promise<CourseOrder[]>;

@@ -1,4 +1,5 @@
-import { Course, Video } from '../../domain/entities/Course';
+import { ICourse } from '../../domain/entities/ICourse';
+import { IVideo } from '../../domain/entities/IVideo';
 import { ICourseRepository } from '../../domain/interfaces/ICourseRepository';
 import { IVideoUploadService } from '../../domain/interfaces/IVideoUpload';
 
@@ -8,17 +9,17 @@ export class CourseUseCase {
         private _videoUploadService: IVideoUploadService
     ) {}
 
-    async addCourse(course: Course): Promise<Course> {
+    async addCourse(course: ICourse): Promise<ICourse> {
         return await this._courseRepository.addCourse(course);
     }
 
-    async uploadVideo(videoData: { title: string, description: string, file: Express.Multer.File }): Promise<Video> {
+    async uploadVideo(videoData: { title: string, description: string, file: Express.Multer.File }): Promise<IVideo> {
         const { title, description, file } = videoData;
 
         const fileName = `${Date.now()}-${title}`;
         const fileUrl = await this._videoUploadService.upload(file.buffer, fileName);
 
-        const video: Video = {
+        const video: IVideo = {
             title,
             description,
             url: fileUrl
@@ -27,7 +28,7 @@ export class CourseUseCase {
         return video;
     }
 
-    async fetchAllCourse(): Promise<Course[]> {
+    async fetchAllCourse(): Promise<ICourse[]> {
         try {
             return this._courseRepository.findAllCourse();
         } catch (error) {
@@ -36,7 +37,7 @@ export class CourseUseCase {
         }
     }
 
-    async fetchCourseDetails( courseId: string ): Promise<Course | null> {
+    async fetchCourseDetails( courseId: string ): Promise<ICourse | null> {
         try {
             return this._courseRepository.findCourseById(courseId);
         } catch (error) {

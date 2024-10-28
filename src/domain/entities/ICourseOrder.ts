@@ -1,12 +1,12 @@
-export interface CourseOrder {
+export interface ICourseOrder {
     _id: string;
     studentId: string;
     courseId: string;
     paymentId: string;
     amount: number;
-    paymentStatus: 'pending' | 'completed' | 'failed';
+    paymentStatus: 'Pending' | 'Completed' | 'Failed';
     purchaseDate: Date;
     isActive: boolean;
-    completionStatus: 'not-started' | 'in-progress' | 'completed';
+    completionStatus: 'Not-Started' | 'In-Progress' | 'Completed';
     lastAccessedDate: Date;
 }
