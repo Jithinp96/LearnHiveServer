@@ -265,11 +265,16 @@ export class TutorUseCase {
         }
     }
 
-    async UpdateSlotStatus(slotId: string, studentId: string): Promise<void> {
-        await this._tutorSlotRepository.updateSlotBooking(slotId, {
-            isBooked: true,
-            studentId,
-          });
+    async UpdateSlotStatus(slotId: string, studentId: string, meetingId: string, meetingLink: string): Promise<void> {
+        await this._tutorSlotRepository.updateSlotBooking(
+            slotId, 
+            {
+                isBooked: true,
+                studentId,
+                meetingId,
+                meetingLink,
+            }
+        );
     }
     
 }

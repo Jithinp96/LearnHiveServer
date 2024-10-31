@@ -16,6 +16,10 @@ import { TutorUseCase } from "../../application/useCases/tutor/TutorUseCase";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3 } from "../../infrastructure/config/awsS3Config";
 import { TutorSlotRepository } from "../../infrastructure/repositories/TutorSlotRepository";
+import { SaveSlotPreferenceUseCase } from "../../application/useCases/tutor/SaveSlotPreferenceUseCase";
+import { TutorSlotPreferenceRepository } from "../../infrastructure/repositories/TutorSlotPreferenceRepository";
+import { MultipleSlotSchedulerRepository } from "../../infrastructure/repositories/MultipleSlotSchedulerRepository";
+import { GenerateMultipleSlotUseCase } from "../../application/useCases/tutor/GenerateMultipleSlotUseCase";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -31,10 +35,14 @@ export class TutorController {
   private _forgotPasswordUseCase: ForgotPassword;
   private _resetPasswordUseCase: ResetPassword;
   private _tutorUseCase: TutorUseCase;
+  private _saveSlotPreferenceUseCase: SaveSlotPreferenceUseCase;
+  private _tutorSlotPreferenceRepository: TutorSlotPreferenceRepository;
 
   constructor() {
       this._tutorRepo = new TutorRepository();
       this._tutorSlotRepo = new TutorSlotRepository();
+      this._tutorSlotPreferenceRepository = new TutorSlotPreferenceRepository();
+
       this._registerTutor = new RegisterTutor(this._tutorRepo);
       this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
       this._jwtService = new JWTService();
@@ -42,6 +50,7 @@ export class TutorController {
       this._forgotPasswordUseCase = new ForgotPassword(this._tutorRepo);
       this._resetPasswordUseCase = new ResetPassword(this._tutorRepo);
       this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
+      this._saveSlotPreferenceUseCase = new SaveSlotPreferenceUseCase(this._tutorSlotPreferenceRepository)
   }
 
   //REGISTER TUTOR
@@ -387,4 +396,55 @@ export class TutorController {
         res.status(400).json({ error: error });
     }
   }
+
+  public saveSlotPreference = async(req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log("Reached inside save preference constroller");
+      
+      const {tutorId, subject, level, date, startTime, endTime, price, requiresDailySlotCreation } = req.body;
+      const saveData = {
+        tutorId: tutorId,
+        subject: subject,
+        level: level,
+        endDate: date,
+        startTime: startTime,
+        endTime: endTime,
+        price: price,
+        requiresDailySlotCreation: requiresDailySlotCreation
+      }
+      const slots = await this._saveSlotPreferenceUseCase.execute(saveData);
+      res.status(201).json({ message: 'Slot preference saved successfully' });
+    } catch (error) {
+      console.log("error from the save slot preference in tutor controller");
+      
+      res.status(500).json({ message: 'Failed to save slot preference', error });
+    }
+  }
+
+  public multipleSlotGeneration = async (req: Request, res: Response) => {
+    console.log("Reached GenerateSlot controller");
+    
+    try {
+        const { tutorId, subject, date, level, startTime, endTime, price } = req.body;
+        
+        const multipleSlotSchedulerRepository = new MultipleSlotSchedulerRepository();
+        const generateMultipleSlotUseCase = new GenerateMultipleSlotUseCase(multipleSlotSchedulerRepository);
+        
+        const newSlots = await generateMultipleSlotUseCase.execute(
+            tutorId,
+            subject,
+            level,
+            date,
+            startTime,
+            endTime,
+            price
+        );
+        console.log("newSlots: ", newSlots);
+        
+        res.status(200).json({ message: 'Slots generated successfully', newSlots });
+    } catch (error) {
+        console.error('Error generating slots:', error);
+        res.status(500).json({ message: 'Error generating slots' });
+    }
+  };
 }

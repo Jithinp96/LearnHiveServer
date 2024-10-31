@@ -40,6 +40,47 @@ export class CourseController {
             res.status(500).json({ error: 'Failed to add course', details: error });
         }
     }
+    
+    public editCourse = async(req: Request, res: Response) => {
+        console.log("Inside edit course controller");
+        const courseData = req.body;
+        console.log("courseData in edit course controller: ", courseData);
+        
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
+
+    public approveCourse = async(req: Request, res: Response) => {
+        console.log("Inside course approval controller");
+        const { courseId } = req.params
+        console.log("courseId: ", courseId);
+        
+        try {
+            await this._courseUseCase.approveCourse(courseId)
+            res.status(200).json({ message: 'Course approved successfully' });
+        } catch (error) {
+            console.error("Error approving course:", error);
+            res.status(500).json({ message: 'Failed to approve course' });
+        }
+    }
+
+    public toggleCourseStatus = async(req: Request, res: Response) => {
+        console.log("Inside togle block");
+        const { courseId } = req.params;
+        const { isBlocked } = req.body; 
+        console.log("courseId: ", courseId);
+        console.log("isBlocked: ", isBlocked);
+        
+        try {
+            await this._courseUseCase.toggleCourseStatus(courseId, isBlocked)
+        } catch (error) {
+            
+        }
+        
+    }
 
     public uploadThumbnail = async (req: Request, res: Response) => {
         const bucketRegion = process.env.S3_BUCKET_REGION;
@@ -127,10 +168,23 @@ export class CourseController {
         }
     }
 
+    public fetchAllCoursesforAdmin = async(req: Request, res: Response) => {
+        try {
+            const courses = await this._courseUseCase.fetchAllCourseForAdmin();
+            res.status(200).json(courses);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch courses' });
+        }
+    }
+
     public fetchCourseDetails = async(req: Request, res: Response) => {
         try {
+            console.log("Inside fetch course Details");
+            
             const {courseId} = req.params
             const course = await this._courseUseCase.fetchCourseDetails(courseId);
+            console.log("course: ", course);
+            
             res.status(200).json(course);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch course details' });

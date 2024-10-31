@@ -4,10 +4,10 @@ interface SlotOrder extends Document {
     studentId: string;
     tutorId: string;
     paymentId: string;
+    refundId?: string;
     amount: number;
     paymentStatus: 'Pending' | 'Completed' | 'Failed';
     sessionStatus: 'Scheduled' | 'Completed' | 'Cancelled';
-    meetingLink?: string;
     notes?: string;
 }
 
@@ -26,6 +26,9 @@ const SlotOrderSchema: Schema = new Schema({
         type: String,
         required: true
     },
+    refundId: {
+        type: String,
+    },
     amount: {
         type: Number,
         required: true
@@ -39,9 +42,6 @@ const SlotOrderSchema: Schema = new Schema({
         type: String,
         enum: ['Scheduled', 'Completed', 'Cancelled'],
         default: 'Scheduled'
-    },
-    meetingLink: {
-        type: String
     },
     notes: {
         type: String

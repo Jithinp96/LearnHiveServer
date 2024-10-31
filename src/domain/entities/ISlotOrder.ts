@@ -3,9 +3,9 @@ export interface ISlotOrder {
     studentId: string;
     tutorId: string;
     paymentId: string;
+    refundId?: string;
     amount: number;
     paymentStatus: 'Pending' | 'Completed' | 'Failed';
     sessionStatus: 'Scheduled' | 'Completed' | 'Cancelled';
-    meetingLink?: string;
     notes?: string;
 }

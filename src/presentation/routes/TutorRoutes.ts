@@ -38,6 +38,8 @@ tutorRoutes.put('/profile/edit-subject', tutorAuthMiddleware(tutorAuthService), 
 tutorRoutes.put('/profile/delete-subject', tutorAuthMiddleware(tutorAuthService), tutorController.deleteSubject)
 
 tutorRoutes.post('/:id/add-course', tutorAuthMiddleware(tutorAuthService), courseController.addCourse)
+tutorRoutes.get(`/edit-course/:courseId`, tutorAuthMiddleware(tutorAuthService), courseController.fetchCourseDetails)
+tutorRoutes.put(`/edit-course/:courseId`, tutorAuthMiddleware(tutorAuthService), courseController.editCourse)
 tutorRoutes.post('/upload-video', tutorAuthMiddleware(tutorAuthService), upload.single('video'), courseController.uploadVideoController)
 tutorRoutes.post('/upload-thumbnail', tutorAuthMiddleware(tutorAuthService), upload.single('image'), courseController.uploadThumbnail)
 tutorRoutes.get('/getcategories', tutorAuthMiddleware(tutorAuthService), courseController.getAllCategories);
@@ -48,5 +50,7 @@ tutorRoutes.post('/addslot', tutorAuthMiddleware(tutorAuthService), tutorControl
 tutorRoutes.put('/editslot', tutorAuthMiddleware(tutorAuthService), tutorController.editSlot)
 tutorRoutes.get('/slot/:slotId', tutorAuthMiddleware(tutorAuthService), tutorController.getSlotById)
 tutorRoutes.get('/appointment', tutorAuthMiddleware(tutorAuthService), tutorController.getAllSlotsByTutorId)
+tutorRoutes.post('/generate-slots', tutorAuthMiddleware(tutorAuthService), tutorController.multipleSlotGeneration);
+tutorRoutes.post('/generate-slots-preference', tutorAuthMiddleware(tutorAuthService), tutorController.saveSlotPreference)
 
 export default tutorRoutes;

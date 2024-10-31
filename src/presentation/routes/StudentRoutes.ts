@@ -47,6 +47,7 @@ studentRoutes.get('/slotbooking/:tutorId', studentAuthMiddleware(studentAuthServ
 studentRoutes.post('/slotbooking/create-payment-intent', studentAuthMiddleware(studentAuthService), paymentController.createPaymentIntent)
 studentRoutes.post('/courseenroll/create-payment-intent', studentAuthMiddleware(studentAuthService), paymentController.createCoursePaymentIntent)
 studentRoutes.post('/webhook', express.raw({ type: 'application/json' }), paymentController.handlePaymentWebhook);
+studentRoutes.post('/slot-cancel/:slotOrderId', studentAuthMiddleware(studentAuthService), paymentController.handleRefund)
 
 studentRoutes.get('/getcategories', courseController.getAllCategories);
 

@@ -10,6 +10,8 @@ interface TutorSlotDocument extends Document {
     price: number;
     isBooked: boolean;
     studentId: string;
+    meetingId: string;
+    meetingLink: string;
 }
 
 const TutorSlotSchema: Schema = new Schema({
@@ -22,6 +24,8 @@ const TutorSlotSchema: Schema = new Schema({
     price: { type: Number, required: true },
     isBooked: { type: Boolean, default: false },
     studentId: { type: Schema.Types.ObjectId, ref: 'Student', default: null },
+    meetingId: { type: String, default: null },
+    meetingLink: { type: String, default: null }
 }, {timestamps: true});
 
 export const TutorSlotModel = model<TutorSlotDocument>('TutorSlot', TutorSlotSchema);

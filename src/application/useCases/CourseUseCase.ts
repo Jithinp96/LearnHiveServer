@@ -37,6 +37,15 @@ export class CourseUseCase {
         }
     }
 
+    async fetchAllCourseForAdmin(): Promise<ICourse[]> {
+        try {
+            return this._courseRepository.findAllCourseForAdmin();
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+            throw new Error('Failed to fetch courses');
+        }
+    }
+
     async fetchCourseDetails( courseId: string ): Promise<ICourse | null> {
         try {
             return this._courseRepository.findCourseById(courseId);
@@ -44,5 +53,25 @@ export class CourseUseCase {
             console.error('Error fetching course details:', error);
             throw new Error('Failed to fetch course details');
         }
+    }
+
+    async approveCourse(courseId: string): Promise<void> {
+        const course = await this._courseRepository.findCourseById(courseId);
+
+        if (!course) {
+            throw new Error('Course not found');
+        }
+
+        await this._courseRepository.approveCourse(courseId);
+    }
+
+    async toggleCourseStatus(courseId: string, status: boolean): Promise<void> {
+        const course = await this._courseRepository.findCourseById(courseId);
+
+        if (!course) {
+            throw new Error('Course not found');
+        }
+
+        await this._courseRepository.toggleBlockStatus(courseId, !status);
     }
 }

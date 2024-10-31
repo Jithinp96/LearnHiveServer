@@ -23,7 +23,7 @@ export class TutorSlotRepository implements ITutorSlotRepository {
         return slots.map(slot => slot.toObject());
     }
 
-    async updateSlotBooking(slotId: string, updateData: { isBooked: boolean; studentId: string }): Promise<void> {
-        await TutorSlotModel.findByIdAndUpdate(slotId, updateData, { new: true });
-    }
+    async updateSlotBooking( slotId: string, updateData: { isBooked: boolean; studentId: string; meetingId: string; meetingLink: string }): Promise<void> {
+        await TutorSlotModel.findByIdAndUpdate( slotId, updateData, { new: true } );
+      }
 }

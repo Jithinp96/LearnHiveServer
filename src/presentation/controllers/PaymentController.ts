@@ -1,10 +1,14 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
+import { v4 as uuidv4 } from 'uuid';
+
 import { CourseOrder } from '../../infrastructure/database/models/CourseOrderModel';
 import { SlotOrder } from '../../infrastructure/database/models/SlotOrderModel';
 import { TutorRepository } from '../../infrastructure/repositories/TutorRepository';
 import { TutorSlotRepository } from '../../infrastructure/repositories/TutorSlotRepository';
 import { TutorUseCase } from '../../application/useCases/tutor/TutorUseCase';
+import { RefundSlotOrderUseCase } from '../../application/useCases/student/RefundSlotOrderUseCase';
+import { OrderRepository } from '../../infrastructure/repositories/OrderRepository';
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -17,12 +21,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 export class PaymentController {
   private _tutorSlotRepo: TutorSlotRepository;
   private _tutorRepo: TutorRepository;
+  private _orderRepo: OrderRepository;
+
   private _tutorUseCase: TutorUseCase;
+  private _refundSlotOrderUseCase: RefundSlotOrderUseCase;
 
   constructor() {
     this._tutorSlotRepo = new TutorSlotRepository();
     this._tutorRepo = new TutorRepository();
+    this._orderRepo = new OrderRepository()
+
     this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
+    this._refundSlotOrderUseCase = new RefundSlotOrderUseCase(this._orderRepo);
   }
 
   public createPaymentIntent = async (req: AuthenticatedRequest, res: Response) => {
@@ -191,9 +201,36 @@ export class PaymentController {
     await SlotOrder.create(orderDetails);
 
     if (status === 'Completed' && orderDetails.slotId && orderDetails.studentId) {
-      await this._tutorUseCase.UpdateSlotStatus(orderDetails.slotId, orderDetails.studentId);
+      const roomId = uuidv4();
+      const meetingLink = `${process.env.CORSURL}/room/${roomId}`;
+      console.log("roomId from pay controller: ", roomId);
+      console.log("meetingLink: ", meetingLink);
+      
+      await this._tutorUseCase.UpdateSlotStatus(orderDetails.slotId, orderDetails.studentId, roomId, meetingLink);
     } else {
       console.error("Missing slotId or studentId in order details:", orderDetails);
+    }
+  }
+
+  public handleRefund = async (req: AuthenticatedRequest, res: Response) => {
+    console.log("Reached handleRefund controller");
+    
+    try {
+      const studentId = req.userId as string;
+      const { slotOrderId } = req.params;
+      console.log("studentId: ", studentId);
+      console.log("slotOrderId: ", slotOrderId);
+      
+      const refundedOrder = await this._refundSlotOrderUseCase.execute(slotOrderId, studentId);
+      console.log("refundedOrder in handle refund controller: ", refundedOrder);
+      
+      res.status(200).json({
+        message: 'Slot order refunded successfully',
+        order: refundedOrder
+      });
+    } catch (error) {
+      console.error('Refund error:', error);
+      res.status(500).json({ error: 'Failed to refund slot order' });
     }
   }
 }

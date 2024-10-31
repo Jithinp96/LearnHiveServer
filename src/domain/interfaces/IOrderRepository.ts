@@ -1,7 +1,9 @@
-import { CourseOrder } from "../entities/ICourseOrder";
-import { SlotOrder } from "../entities/ISlotOrder";
+import { ICourseOrder } from "../entities/ICourseOrder";
+import { ISlotOrder } from "../entities/ISlotOrder";
 
 export interface IOrderRepository {
-  getCourseOrderByStudentId(studentId: string): Promise<CourseOrder[]>;
-  getSlotOrderByStudentId(studentId: string): Promise<SlotOrder[]>;
+  getCourseOrderByStudentId(studentId: string): Promise<ICourseOrder[]>;
+  getSlotOrderByStudentId(studentId: string): Promise<ISlotOrder[]>;
+  getSlotOrderById(slotOrderId: string): Promise<ISlotOrder>;
+  updateSlotOrder(slotOrder: ISlotOrder): Promise<ISlotOrder>;
 }

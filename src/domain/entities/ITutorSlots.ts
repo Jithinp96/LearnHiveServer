@@ -8,4 +8,6 @@ export interface ITutorSlot {
     price: number;
     isBooked: boolean;
     studentId?: string;
+    meetingId?: string;
+    meetingLink?: string;
 }

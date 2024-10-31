@@ -37,6 +37,17 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
+    async findAllCourseForAdmin(): Promise<ICourse[]> {
+        try {
+            const course = await CourseModel.find()
+            .populate('category', 'name');
+            return course
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+            throw new Error('Failed to fetch courses');
+        }
+    }
+
     async findCourseById(courseId: string): Promise<ICourse | null> {
         try {
             const course = await CourseModel.findById(courseId)
@@ -47,5 +58,16 @@ export class CourseRepository implements ICourseRepository {
             console.error('Error fetching course details:', error);
             throw new Error('Failed to fetch course details');
         }
+    }
+
+    async approveCourse(courseId: string): Promise<void> {
+        await CourseModel.findByIdAndUpdate(courseId, { 
+            isApproved: true,
+            isListed: true
+        });
+    }
+    
+    async toggleBlockStatus(courseId: string, status: boolean): Promise<void> {
+        await CourseModel.findByIdAndUpdate(courseId, { isBlocked: status });
     }
 }

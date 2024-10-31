@@ -31,6 +31,9 @@ adminRoutes.get("/course-category", adminAuthMiddleware(adminAuthService), admin
 adminRoutes.patch("/course-category/toggle-status/:id", adminAuthMiddleware(adminAuthService), adminController.toggleCategoryStatus);
 adminRoutes.put('/course-category/edit/:id', adminAuthMiddleware(adminAuthService), adminController.updateCategory);
 
-adminRoutes.get('/courses', adminAuthMiddleware(adminAuthService), courseController.fetchAllCourses);
+adminRoutes.get('/courses', adminAuthMiddleware(adminAuthService), courseController.fetchAllCoursesforAdmin);
+adminRoutes.get("/course/:courseId", adminAuthMiddleware(adminAuthService), courseController.fetchCourseDetails)
+adminRoutes.put("/course/:courseId/approval", adminAuthMiddleware(adminAuthService), courseController.approveCourse)
+adminRoutes.put("/course/:courseId/toggle-status", adminAuthMiddleware(adminAuthService), courseController.toggleCourseStatus)
 
 export default adminRoutes;

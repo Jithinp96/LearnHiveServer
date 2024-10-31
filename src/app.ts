@@ -8,12 +8,13 @@ import morgan from "morgan";
 import studentRoutes from "./presentation/routes/StudentRoutes";
 import tutorRoutes from "./presentation/routes/TutorRoutes";
 import adminRoutes from "./presentation/routes/AdminRoutes";
+
 import { errorHandler } from "./infrastructure/middlewares/ErrorHandler";
+import { CronScheduler } from "./infrastructure/services/CronScheduler";
 
 dotenv.config();
 
 const app = express();
-// app.use(express.json());
 
 app.use('/api/students/webhook', express.raw({ type: 'application/json' }));
 
@@ -44,6 +45,9 @@ app.use(errorHandler);
 
 mongoose.connect(process.env.MONGO_URI!)
   .then(() => {
-    app.listen(`${process.env.PORT}`, () => console.log(`Server running on port ${process.env.PORT}`));
+    app.listen(`${process.env.PORT}`, () => {
+      console.log(`Server running on port ${process.env.PORT}`)
+      CronScheduler.initialize();
+    });
   })
   .catch((error) => console.error("MongoDB connection error: ", error));
