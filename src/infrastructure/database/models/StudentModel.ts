@@ -8,7 +8,7 @@ interface StudentDocument extends Document {
   name: string;
   email: string;
   mobile: number;
-  password: string;
+  password: string; 
   isVerified: boolean;
   role: 'Student';
   isBlocked: boolean;

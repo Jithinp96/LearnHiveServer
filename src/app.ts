@@ -8,6 +8,7 @@ import morgan from "morgan";
 import studentRoutes from "./presentation/routes/StudentRoutes";
 import tutorRoutes from "./presentation/routes/TutorRoutes";
 import adminRoutes from "./presentation/routes/AdminRoutes";
+import messageRoute from "./presentation/routes/MessageRoutes";
 
 import { errorHandler } from "./infrastructure/middlewares/ErrorHandler";
 import { CronScheduler } from "./infrastructure/services/CronScheduler";
@@ -40,6 +41,7 @@ app.use(morgan('dev'));
 app.use("/api/students", studentRoutes);
 app.use("/api/tutor", tutorRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/messages", messageRoute);
 
 app.use(errorHandler);
 

@@ -275,8 +275,8 @@ public editEducation = async (req: AuthenticatedRequest, res: Response, next: Ne
           success: false,
           message: AuthErrorEnum.INVALID_ID
       });
-    
     }
+    
     try {
         const updatedStudent = await this._studentUseCase.editEducation(studentId, educationId, req.body);
 

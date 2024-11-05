@@ -10,6 +10,8 @@ import { upload } from "../../infrastructure/config/multerConfig"
 import { CartController } from "../controllers/CartController";
 import { PaymentController } from "../controllers/PaymentController";
 import { OrderController } from "../controllers/OrderController";
+import { ReviewController } from "../controllers/ReviewController";
+import { CommentController } from "../controllers/CommentController";
 
 const studentController = new StudentController();
 const studentRepositoryInstance = new StudentRepository();
@@ -18,6 +20,8 @@ const cartController = new CartController()
 const studentAuthService = new StudentAuthService(studentRepositoryInstance)
 const paymentController = new PaymentController();
 const orderController = new OrderController()
+const reviewController = new ReviewController()
+const commentController = new CommentController()
 
 const studentRoutes = Router();
 
@@ -62,5 +66,13 @@ studentRoutes.get('/cart', studentAuthMiddleware(studentAuthService), cartContro
 studentRoutes.delete('/cart/delete/:courseId', studentAuthMiddleware(studentAuthService), cartController.deleteFromCart)
 
 studentRoutes.post('/create-checkout-session', studentAuthMiddleware(studentAuthService), cartController.payment)
+
+studentRoutes.post('/:courseId/reviews', studentAuthMiddleware(studentAuthService), reviewController.addReview)
+// studentRoutes.put('/:courseId/reviews/:reviewId', studentAuthMiddleware(studentAuthService), reviewController.updateReview)
+studentRoutes.delete('/:courseId/reviews/:reviewId', studentAuthMiddleware(studentAuthService), reviewController.deleteReview)
+
+studentRoutes.post('/:courseId/comments', studentAuthMiddleware(studentAuthService), commentController.addComment)
+studentRoutes.put('/:courseId/comments/:commentId', studentAuthMiddleware(studentAuthService), commentController.editComment)
+studentRoutes.delete('/:courseId/comments/:commentId', studentAuthMiddleware(studentAuthService), commentController.deleteComment)
 
 export default studentRoutes;

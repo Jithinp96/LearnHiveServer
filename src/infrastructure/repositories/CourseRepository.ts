@@ -52,7 +52,9 @@ export class CourseRepository implements ICourseRepository {
         try {
             const course = await CourseModel.findById(courseId)
                 .populate('tutorId', 'name')
-                .populate('category', 'name');
+                .populate('category', 'name')
+                .populate('reviews.userId', 'name profileImage')
+                .populate('comments.userId', 'name profileImage')
             return course;
         } catch (error) {
             console.error('Error fetching course details:', error);
