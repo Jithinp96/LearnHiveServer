@@ -9,6 +9,7 @@ import { TutorSlotRepository } from '../../infrastructure/repositories/TutorSlot
 import { TutorUseCase } from '../../application/useCases/tutor/TutorUseCase';
 import { RefundSlotOrderUseCase } from '../../application/useCases/student/RefundSlotOrderUseCase';
 import { OrderRepository } from '../../infrastructure/repositories/OrderRepository';
+import { HttpStatusEnum } from '../../shared/enums/HttpStatusEnum';
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -41,7 +42,7 @@ export class PaymentController {
       const userId = req.userId;
 
       if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
+        return res.status(HttpStatusEnum.UNAUTHORIZED).json({ error: 'User ID is required' });
       }
 
       const lineItems = [{
@@ -71,7 +72,7 @@ export class PaymentController {
       res.json({id:session.id})
     } catch (error) {
       console.error('Error creating payment intent:', error);
-      res.status(500).json({ error: 'Failed to create payment intent' });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create payment intent' });
     }
   }
 
@@ -111,7 +112,7 @@ export class PaymentController {
       res.json({id:session.id})
     } catch (error) {
       console.error('Error creating payment intent:', error);
-      res.status(500).json({ error: 'Failed to create payment intent' });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create payment intent' });
     }
   }
 
@@ -136,7 +137,7 @@ export class PaymentController {
           
           if (!session.metadata?.userId) {
             console.error('Missing required metadata in session:', session.id);
-            return res.status(400).json({ error: 'Missing required metadata' });
+            return res.status(HttpStatusEnum.BAD_REQUEST).json({ error: 'Missing required metadata' });
           }
 
           if (session.metadata.type === 'course') {
@@ -152,7 +153,7 @@ export class PaymentController {
           
           if (!session.metadata?.userId) {
             console.error('Missing required metadata in expired session:', session.id);
-            return res.status(400).json({ error: 'Missing required metadata' });
+            return res.status(HttpStatusEnum.BAD_REQUEST).json({ error: 'Missing required metadata' });
           }
 
           if (session.metadata.type === 'course') {
@@ -167,7 +168,7 @@ export class PaymentController {
       res.json({ received: true });
     } catch (error) {
       console.error('Webhook error:', error);
-      res.status(400).json({ error: 'Webhook error' });
+      res.status(HttpStatusEnum.BAD_REQUEST).json({ error: 'Webhook error' });
     }
   }
 
@@ -224,13 +225,13 @@ export class PaymentController {
       const refundedOrder = await this._refundSlotOrderUseCase.execute(slotOrderId, studentId);
       console.log("refundedOrder in handle refund controller: ", refundedOrder);
       
-      res.status(200).json({
+      res.status(HttpStatusEnum.OK).json({
         message: 'Slot order refunded successfully',
         order: refundedOrder
       });
     } catch (error) {
       console.error('Refund error:', error);
-      res.status(500).json({ error: 'Failed to refund slot order' });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: 'Failed to refund slot order' });
     }
   }
 }

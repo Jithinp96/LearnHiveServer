@@ -1,4 +1,5 @@
 import { ITutorRepository } from "../../../domain/interfaces/ITutorRepository";
+import { UserRole } from "../../../shared/enums/UserRoleEnum";
 import { JWTService } from "../../../shared/utils/JWTService";
 import bcrypt from 'bcryptjs';
 
@@ -32,8 +33,13 @@ export class LoginTutorUseCase {
                 throw new Error("Invalid email or password");
             }
 
-            const accessToken = JWTService.generateTutorAccessToken( tutor );
-            const refreshToken = JWTService.generateTutorRefreshToken({ tutor });
+            const payload = { _id: tutor._id, email: tutor.email, role: UserRole.TUTOR };
+            
+            const accessToken = JWTService.generateAccessToken( payload );
+            const refreshToken = JWTService.generateRefreshToken( {payload} );
+
+            // const accessToken = JWTService.generateAccessToken( tutor );
+            // const refreshToken = JWTService.generateRefreshToken({ tutor });
 
             return { accessToken, refreshToken, tutor };
         } catch (error) {

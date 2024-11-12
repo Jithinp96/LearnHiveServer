@@ -1,3 +1,4 @@
+import { UserRole } from "../../../shared/enums/UserRoleEnum";
 import { JWTService } from "../../../shared/utils/JWTService";
 
 export class AdminLogin {
@@ -8,6 +9,8 @@ export class AdminLogin {
     }
 
     async execute(email: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
+        console.log("Inside Admin Login usecase");
+        
         try {
             const adminEmail = process.env.ADMIN_EMAIL;
             const adminPassword = process.env.ADMIN_PASSWORD;
@@ -16,9 +19,9 @@ export class AdminLogin {
                 throw new Error('Invalid credentials!');
             }
 
-            const payload = { email: adminEmail, role: 'admin' };
-            const accessToken = JWTService.generateAdminAccessToken({ payload });
-            const refreshToken = JWTService.generateAdminRefreshToken({ payload });
+            const payload = { email: adminEmail, role: UserRole.ADMIN };
+            const accessToken = JWTService.generateAccessToken( payload );
+            const refreshToken = JWTService.generateRefreshToken({ payload });
 
             return { accessToken, refreshToken }
         } catch (error) {

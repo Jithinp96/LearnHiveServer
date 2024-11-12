@@ -134,7 +134,7 @@ export class TutorController {
     
     try {
         const { accessToken, refreshToken, tutor } = await this._loginTutorUseCase.execute(email, password)
-        JWTService.setTokens(res, accessToken, refreshToken, tutor.role);
+        JWTService.setTokens(res, accessToken, refreshToken);
 
         res.status(HttpStatusEnum.OK).json({
             message: "Tutor Login Successful",
@@ -150,7 +150,7 @@ export class TutorController {
     try {
       await this._forgotPasswordUseCase.execute(req, res);
     } catch (error) {
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: 'Internal Server Error' });
     }
   };
   
@@ -158,7 +158,7 @@ export class TutorController {
     try {
       await this._resetPasswordUseCase.execute(req, res);
     } catch (error) {
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: 'Internal Server Error' });
     }
   };
 
@@ -167,10 +167,18 @@ export class TutorController {
     return LogoutTutorUseCase.execute(req, res, role);
   }
 
-  public getProfile = async (req: Request, res: Response) => {
-    const {id} = req.params;
+  public getProfile = async (req: AuthenticatedRequest, res: Response) => {
+    // const {id} = req.params;
+    const tutorId = req.userId;
+    console.log("id: ", tutorId);
+
+    if(!tutorId) {
+      res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });
+      return; 
+    }
+    
     try {
-      const tutor = await this._tutorRepo.findTutorById(id);
+      const tutor = await this._tutorRepo.findTutorById(tutorId);
 
       if(!tutor) {
         return res.status(HttpStatusEnum.NOT_FOUND).json({
@@ -189,15 +197,15 @@ export class TutorController {
     const { subjectData } = req.body;
     
     if(!tutorId) {
-      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });
       return; 
     }
 
     try {
         const updatedTutor = await this._tutorUseCase.addSubject(tutorId, subjectData);
-        res.status(200).json(updatedTutor);
+        res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
-        res.status(500).json({ error: "Failed to add subject" });
+        res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to add subject" });
     }
   }
 
@@ -205,15 +213,15 @@ export class TutorController {
     const tutorId = req.userId;
     const { subjectId, editedSubject } = req.body;
     if(!tutorId) {
-      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });
       return; 
     }
 
     try {
         const updatedTutor = await this._tutorUseCase.editSubject(tutorId, subjectId, editedSubject);
-        res.status(200).json(updatedTutor);
+        res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
-        res.status(500).json({ error: "Failed to edit subject" });
+        res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to edit subject" });
     }
   }
 
@@ -222,15 +230,15 @@ export class TutorController {
     const { subjectId } = req.body;
 
     if(!tutorId) {
-      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });
       return; 
     }
 
     try {
         const updatedTutor = await this._tutorUseCase.deleteSubject(tutorId, subjectId);
-        res.status(200).json(updatedTutor);
+        res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
-        res.status(500).json({ error: "Failed to delete subject" });
+        res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to delete subject" });
     }
   }
 
@@ -238,16 +246,16 @@ export class TutorController {
     const tutorId = req.userId;
 
     if (!tutorId) {
-      res.status(401).json({ message: 'Unauthorized: Tutor ID is required.' });
+      res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });
       return;
     }
 
     try {
       const subjects = await this._tutorUseCase.fetchSubjects(tutorId);
-      res.status(200).json({ subjects });
+      res.status(HttpStatusEnum.OK).json({ subjects });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Failed to fetch subjects' });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch subjects' });
     }
 };
 
@@ -276,7 +284,7 @@ export class TutorController {
 
     try {
       const updatedTutor = await this._tutorUseCase.editEducation(id, educationId, educationData);
-      res.status(200).json(updatedTutor);
+      res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
       console.error(error);
     }
@@ -288,9 +296,9 @@ export class TutorController {
 
     try {
         const updatedTutor = await this._tutorUseCase.deleteEducation(id, educationId);
-        res.status(200).json(updatedTutor);
+        res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
-        res.status(500).json({ error: "Failed to delete education" });
+        res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to delete education" });
     }
   }
 
@@ -298,9 +306,9 @@ export class TutorController {
     const { id, newName } = req.body;
     try {
       const updatedTutor = await this._tutorUseCase.editProfileName(id, newName);
-      res.status(200).json(updatedTutor);
+      res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update name" });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to update name" });
     }
   }
 
@@ -309,9 +317,9 @@ export class TutorController {
     
     try {
       const updatedTutor = await this._tutorUseCase.editMobileNumber(id, newNumber);
-      res.status(200).json(updatedTutor);
+      res.status(HttpStatusEnum.OK).json(updatedTutor);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update name" });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to update name" });
     }
   }
 
@@ -323,7 +331,7 @@ export class TutorController {
     
     if (!req.file) {
         console.log("No file received");
-        return res.status(400).json({ error: 'No profile image file provided' });
+        return res.status(HttpStatusEnum.BAD_REQUEST).json({ error: 'No profile image file provided' });
     }
     const fileName = `${Date.now()}-${req.file.originalname}`;
 
@@ -339,7 +347,7 @@ export class TutorController {
     const url = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
 
     const updatedTutor = await this._tutorUseCase.editProfilePic(id, url);
-    res.status(200).json(updatedTutor);
+    res.status(HttpStatusEnum.OK).json(updatedTutor);
   }
 
   public addSlot = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -348,9 +356,9 @@ export class TutorController {
     const mergedSlotData = { tutorId, ...slotData };
     try {
         const newSlot = await this._tutorUseCase.addSlot(mergedSlotData);
-        res.status(201).json(newSlot);
+        res.status(HttpStatusEnum.CREATED).json(newSlot);
     } catch (error) {
-        res.status(400).json({ error: error });
+        res.status(HttpStatusEnum.BAD_REQUEST).json({ error: error });
     }
   }
 
@@ -359,12 +367,12 @@ export class TutorController {
     try {
         const updatedSlot = await this._tutorUseCase.editSlot(slotId, slotData);
         if (!updatedSlot) {
-          res.status(404).json({ message: 'Slot not found' });
+          res.status(HttpStatusEnum.NOT_FOUND).json({ message: 'Slot not found' });
           return
         }
-        res.status(200).json(updatedSlot);
+        res.status(HttpStatusEnum.OK).json(updatedSlot);
     } catch (error) {
-        res.status(400).json({ error: error });
+        res.status(HttpStatusEnum.BAD_REQUEST).json({ error: error });
     }
 }
 
@@ -374,12 +382,12 @@ export class TutorController {
     try {
         const slot = await this._tutorUseCase.getSlotById(slotId);
         if (!slot) {
-          res.status(404).json({ message: 'Slot not found' });
+          res.status(HttpStatusEnum.NOT_FOUND).json({ message: 'Slot not found' });
           return
         }
-        res.status(200).json(slot);
+        res.status(HttpStatusEnum.OK).json(slot);
     } catch (error) {
-        res.status(400).json({ error: error });
+        res.status(HttpStatusEnum.BAD_REQUEST).json({ error: error });
     }
   }
 
@@ -391,9 +399,9 @@ export class TutorController {
     }
     try {
         const slots = await this._tutorUseCase.getAllSlotsByTutorId(tutorId);
-        res.status(200).json(slots);
+        res.status(HttpStatusEnum.OK).json(slots);
     } catch (error) {
-        res.status(400).json({ error: error });
+        res.status(HttpStatusEnum.BAD_REQUEST).json({ error: error });
     }
   }
 
@@ -413,11 +421,11 @@ export class TutorController {
         requiresDailySlotCreation: requiresDailySlotCreation
       }
       const slots = await this._saveSlotPreferenceUseCase.execute(saveData);
-      res.status(201).json({ message: 'Slot preference saved successfully' });
+      res.status(HttpStatusEnum.CREATED).json({ message: 'Slot preference saved successfully' });
     } catch (error) {
       console.log("error from the save slot preference in tutor controller");
       
-      res.status(500).json({ message: 'Failed to save slot preference', error });
+      res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: 'Failed to save slot preference', error });
     }
   }
 
@@ -441,10 +449,10 @@ export class TutorController {
         );
         console.log("newSlots: ", newSlots);
         
-        res.status(200).json({ message: 'Slots generated successfully', newSlots });
+        res.status(HttpStatusEnum.OK).json({ message: 'Slots generated successfully', newSlots });
     } catch (error) {
         console.error('Error generating slots:', error);
-        res.status(500).json({ message: 'Error generating slots' });
+        res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: 'Error generating slots' });
     }
   };
 }

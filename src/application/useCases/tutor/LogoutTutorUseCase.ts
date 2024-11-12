@@ -5,7 +5,7 @@ import { HttpStatusEnum } from "../../../shared/enums/HttpStatusEnum";
 export class LogoutTutorUseCase {
     static execute(req: Request, res: Response, role: string) {
         try {
-            JWTService.clearTokens(res, role);
+            JWTService.clearTokens(res);
             return res.status(HttpStatusEnum.OK).json({ message: 'Logged out successfully' });
         } catch (error) {
             console.error("Logout error:", error);

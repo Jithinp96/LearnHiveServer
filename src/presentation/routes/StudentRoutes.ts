@@ -1,29 +1,35 @@
 import { Router } from "express";
 import express from 'express';
 
-import { StudentController } from "../controllers/StudentController";
-import studentAuthMiddleware from "../../infrastructure/middlewares/StudentAuthMiddleware";
-import { StudentAuthService } from "../../application/services/StudentAuthService";
+import AuthMiddleware from "../../infrastructure/middlewares/AuthMiddleware";
+import { AuthService } from "../../application/services/AuthService";
+
 import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
+
+import { StudentController } from "../controllers/StudentController";
 import { CourseController } from "../controllers/CourseController";
-import { upload } from "../../infrastructure/config/multerConfig"
 import { CartController } from "../controllers/CartController";
 import { PaymentController } from "../controllers/PaymentController";
 import { OrderController } from "../controllers/OrderController";
 import { ReviewController } from "../controllers/ReviewController";
 import { CommentController } from "../controllers/CommentController";
 
+import { upload } from "../../infrastructure/config/multerConfig";
+import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
+
+const studentRoutes = Router();
+
+const studentRepo = new StudentRepository();
+const tutorRepo = new TutorRepository()
+const authService = new AuthService(studentRepo, tutorRepo)
+
 const studentController = new StudentController();
-const studentRepositoryInstance = new StudentRepository();
 const courseController = new CourseController();
 const cartController = new CartController()
-const studentAuthService = new StudentAuthService(studentRepositoryInstance)
 const paymentController = new PaymentController();
 const orderController = new OrderController()
 const reviewController = new ReviewController()
 const commentController = new CommentController()
-
-const studentRoutes = Router();
 
 studentRoutes.post("/auth", studentController.register);
 studentRoutes.post("/resend-otp", studentController.resendOTP);
@@ -32,47 +38,47 @@ studentRoutes.post('/forgot-password', studentController.forgotPassword);
 studentRoutes.post('/reset-password', studentController.resetPassword);
 
 studentRoutes.post('/login', studentController.login);
-studentRoutes.post('/logout/:role', studentAuthMiddleware(studentAuthService), studentController.logout);
+studentRoutes.post('/logout/:role', AuthMiddleware(authService), studentController.logout);
 
-studentRoutes.get('/dashboard', studentAuthMiddleware(studentAuthService), studentController.getDashboard)
+studentRoutes.get('/dashboard', AuthMiddleware(authService), studentController.getDashboard)
 
-studentRoutes.get('/profile/:id', studentAuthMiddleware(studentAuthService), studentController.getProfile);
-studentRoutes.put("/profile/:id/add-education", studentAuthMiddleware(studentAuthService), studentController.addEducation);
-studentRoutes.put("/profile/:id/edit-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.editEducation);
-studentRoutes.delete("/profile/:id/delete-education/:educationId", studentAuthMiddleware(studentAuthService), studentController.deleteEducation);
+studentRoutes.get('/profile/:id', AuthMiddleware(authService), studentController.getProfile);
+studentRoutes.put("/profile/:id/add-education", AuthMiddleware(authService), studentController.addEducation);
+studentRoutes.put("/profile/:id/edit-education/:educationId", AuthMiddleware(authService), studentController.editEducation);
+studentRoutes.delete("/profile/:id/delete-education/:educationId", AuthMiddleware(authService), studentController.deleteEducation);
 
-studentRoutes.put('/profile/edit-name', studentAuthMiddleware(studentAuthService), studentController.editProfileName)
-studentRoutes.put('/profile/edit-mobile', studentAuthMiddleware(studentAuthService), studentController.editMobileNumber)
-studentRoutes.put('/profile/edit-profilePic/:id', studentAuthMiddleware(studentAuthService), upload.single('image'), studentController.editProfilePicture)
+studentRoutes.put('/profile/edit-name', AuthMiddleware(authService), studentController.editProfileName)
+studentRoutes.put('/profile/edit-mobile', AuthMiddleware(authService), studentController.editMobileNumber)
+studentRoutes.put('/profile/edit-profilePic/:id', AuthMiddleware(authService), upload.single('image'), studentController.editProfilePicture)
 
-studentRoutes.get('/tutorprofile/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorDetails)
-studentRoutes.get('/slotbooking/:tutorId', studentAuthMiddleware(studentAuthService), studentController.fetchTutorSlotDetails)
+studentRoutes.get('/tutorprofile/:tutorId', AuthMiddleware(authService), studentController.fetchTutorDetails)
+studentRoutes.get('/slotbooking/:tutorId', AuthMiddleware(authService), studentController.fetchTutorSlotDetails)
 
-studentRoutes.post('/slotbooking/create-payment-intent', studentAuthMiddleware(studentAuthService), paymentController.createPaymentIntent)
-studentRoutes.post('/courseenroll/create-payment-intent', studentAuthMiddleware(studentAuthService), paymentController.createCoursePaymentIntent)
+studentRoutes.post('/slotbooking/create-payment-intent', AuthMiddleware(authService), paymentController.createPaymentIntent)
+studentRoutes.post('/courseenroll/create-payment-intent', AuthMiddleware(authService), paymentController.createCoursePaymentIntent)
 studentRoutes.post('/webhook', express.raw({ type: 'application/json' }), paymentController.handlePaymentWebhook);
-studentRoutes.post('/slot-cancel/:slotOrderId', studentAuthMiddleware(studentAuthService), paymentController.handleRefund)
+studentRoutes.post('/slot-cancel/:slotOrderId', AuthMiddleware(authService), paymentController.handleRefund)
 
 studentRoutes.get('/getcategories', courseController.getAllCategories);
 
 studentRoutes.get('/allcourses', courseController.fetchAllCourses);
 studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
 
-studentRoutes.get('/course-orders/', studentAuthMiddleware(studentAuthService), orderController.getCourseOrdersByStudent)
-studentRoutes.get('/slot-orders/', studentAuthMiddleware(studentAuthService), orderController.getSlotOrdersByStudent)
+studentRoutes.get('/course-orders/', AuthMiddleware(authService), orderController.getCourseOrdersByStudent)
+studentRoutes.get('/slot-orders/', AuthMiddleware(authService), orderController.getSlotOrdersByStudent)
 
-studentRoutes.post('/add-to-cart', studentAuthMiddleware(studentAuthService), cartController.addCourseToCart);
-studentRoutes.get('/cart', studentAuthMiddleware(studentAuthService), cartController.fetchCart)
-studentRoutes.delete('/cart/delete/:courseId', studentAuthMiddleware(studentAuthService), cartController.deleteFromCart)
+studentRoutes.post('/add-to-cart', AuthMiddleware(authService), cartController.addCourseToCart);
+studentRoutes.get('/cart', AuthMiddleware(authService), cartController.fetchCart)
+studentRoutes.delete('/cart/delete/:courseId', AuthMiddleware(authService), cartController.deleteFromCart)
 
-studentRoutes.post('/create-checkout-session', studentAuthMiddleware(studentAuthService), cartController.payment)
+studentRoutes.post('/create-checkout-session', AuthMiddleware(authService), cartController.payment)
 
-studentRoutes.post('/:courseId/reviews', studentAuthMiddleware(studentAuthService), reviewController.addReview)
-// studentRoutes.put('/:courseId/reviews/:reviewId', studentAuthMiddleware(studentAuthService), reviewController.updateReview)
-studentRoutes.delete('/:courseId/reviews/:reviewId', studentAuthMiddleware(studentAuthService), reviewController.deleteReview)
+studentRoutes.post('/:courseId/reviews', AuthMiddleware(authService), reviewController.addReview)
+// studentRoutes.put('/:courseId/reviews/:reviewId', AuthMiddleware(authService), reviewController.updateReview)
+studentRoutes.delete('/:courseId/reviews/:reviewId', AuthMiddleware(authService), reviewController.deleteReview)
 
-studentRoutes.post('/:courseId/comments', studentAuthMiddleware(studentAuthService), commentController.addComment)
-studentRoutes.put('/:courseId/comments/:commentId', studentAuthMiddleware(studentAuthService), commentController.editComment)
-studentRoutes.delete('/:courseId/comments/:commentId', studentAuthMiddleware(studentAuthService), commentController.deleteComment)
+studentRoutes.post('/:courseId/comments', AuthMiddleware(authService), commentController.addComment)
+studentRoutes.put('/:courseId/comments/:commentId', AuthMiddleware(authService), commentController.editComment)
+studentRoutes.delete('/:courseId/comments/:commentId', AuthMiddleware(authService), commentController.deleteComment)
 
 export default studentRoutes;

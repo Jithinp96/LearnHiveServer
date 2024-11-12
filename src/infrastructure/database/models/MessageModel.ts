@@ -10,12 +10,11 @@ interface Message extends Document {
 const messageSchema: Schema = new Schema({
     senderId: {
         type: mongoose.Schema.Types.ObjectId,
-        // ref: 'User',
+        
         required: true
     },
     receiverId: {
         type: mongoose.Schema.Types.ObjectId,
-        // ref: 'User',
         required: true
     },
     message: {
@@ -29,4 +28,4 @@ const messageSchema: Schema = new Schema({
     },
 }, {timestamps: true});
 
-export const Message = mongoose.model<Message>("Message", messageSchema)
+export const MessageModel = mongoose.model<Message>("Message", messageSchema)

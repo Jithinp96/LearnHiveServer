@@ -7,7 +7,7 @@ export class TutorRepository implements ITutorRepository {
         try {
             const newTutor = new TutorModel(tutor);
             await newTutor.save();
-            return newTutor.toObject();
+            return newTutor.toObject() as ITutor;
         } catch (error) {
             console.error('Error creating tutor:', error);
             throw new Error('Failed to create tutor');
@@ -16,7 +16,8 @@ export class TutorRepository implements ITutorRepository {
 
     async findTutorByEmail(email: string): Promise<ITutor | null> {
         try {
-            return await TutorModel.findOne({ email }).lean().exec();
+            const tutor = await TutorModel.findOne({ email }).lean().exec();
+            return tutor as ITutor | null;
         } catch (error) {
             console.error('Error finding tutor by email:', error);
             throw new Error('Failed to find tutor by email');
@@ -36,7 +37,7 @@ export class TutorRepository implements ITutorRepository {
     async getAllTutors(): Promise<ITutor[]> {
         try {
             const tutors = await TutorModel.find().lean().exec();
-            return tutors as ITutor[];
+            return tutors as unknown as ITutor[];
         } catch (error) {
             console.error('Error fetching all tutors:', error);
             throw new Error('Failed to retrieve tutors');

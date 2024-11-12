@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { OrderUseCase } from '../../application/useCases/student/OrderUseCase';
 import { OrderRepository } from '../../infrastructure/repositories/OrderRepository';
+import { HttpStatusEnum } from '../../shared/enums/HttpStatusEnum';
 
 interface AuthenticatedRequest extends Request {
-    userId?: string; // Ensure userId is provided in the request
+    userId?: string;
 }
 
 export class OrderController {
@@ -18,17 +19,16 @@ export class OrderController {
         const studentId = req.userId;
 
         if (!studentId) {
-            return res.status(400).json({ message: "Student ID is required" });
+            return res.status(HttpStatusEnum.BAD_REQUEST).json({ message: "Student ID is required" });
         }
 
         try {
             const orders = await this._orderUseCase.getCourseOrders(studentId);
-            console.log("Orders: ", orders);
             
-            return res.status(200).json(orders);
+            return res.status(HttpStatusEnum.OK).json(orders);
         } catch (error) {
             console.error("Error fetching course orders:", error);
-            return res.status(500).json({ message: "Failed to fetch course orders", error });
+            return res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch course orders", error });
         }
     }
 
@@ -36,16 +36,16 @@ export class OrderController {
         const studentId = req.userId;
 
         if (!studentId) {
-            return res.status(400).json({ message: "Student ID is required" });
+            return res.status(HttpStatusEnum.BAD_REQUEST).json({ message: "Student ID is required" });
         }
 
         try {
             const orders = await this._orderUseCase.getSlotOrders(studentId);
             
-            return res.status(200).json(orders);
+            return res.status(HttpStatusEnum.OK).json(orders);
         } catch (error) {
             console.error("Error fetching slot orders:", error);
-            return res.status(500).json({ message: "Failed to fetch slot orders", error});
+            return res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch slot orders", error});
         }
     }
 }

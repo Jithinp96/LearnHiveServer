@@ -3,6 +3,7 @@ import { ISubjects } from "./ISubjects";
 import { IWorkExperience } from "./IWorkExperience";
 
 export interface ITutor {
+    _id?: string
     tutorId: string;
     name: string;
     email: string;

@@ -28,12 +28,14 @@ export class AdminController {
     }
 
     public login = async (req: Request, res: Response): Promise<void> => {
+        console.log("Inside admin login controller");
+        
         const { email, password } = req.body;
 
         try {
             const { accessToken, refreshToken } = await this._adminLogin.execute(email, password);
             
-            JWTService.setTokens(res, accessToken, refreshToken, 'admin');
+            JWTService.setTokens(res, accessToken, refreshToken);
             res.status(HttpStatusEnum.OK).json({ success: true, message: 'Login Successful', accessToken })
         } catch (error) {
             console.error("Error during admin login:", error);
@@ -43,10 +45,12 @@ export class AdminController {
 
     public logout = async(req: Request, res: Response) => {
         const role = req.params.role;
-        return LogoutAdminUseCase.execute(req, res, role);
+        return LogoutAdminUseCase.execute(req, res);
       }
 
     public async getAllStudents(req: Request, res: Response): Promise<void> {
+        console.log("Inside admin controller get all students");
+        
         try {
             const students = await getAllStudents.execute();
             res.status(HttpStatusEnum.OK).json(students);
@@ -56,6 +60,8 @@ export class AdminController {
     }
 
     public getStudentById = async (req: Request, res: Response) => {
+        console.log("Reached getStudentByID in admin controller");
+        
         const {id} = req.params;
         try {
             const student = await studentRepository.findStudentById(id);

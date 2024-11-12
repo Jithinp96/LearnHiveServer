@@ -36,7 +36,7 @@ export class StudentRepository implements IStudentRepository {
     async getAllStudents(): Promise<IStudent[]> {
         try {
             const students = await StudentModel.find().lean().exec();
-            return students as IStudent[];
+            return students as unknown as IStudent[];
         } catch (error) {
             throw new DatabaseError()
         }

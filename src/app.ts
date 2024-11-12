@@ -12,6 +12,7 @@ import messageRoute from "./presentation/routes/MessageRoutes";
 
 import { errorHandler } from "./infrastructure/middlewares/ErrorHandler";
 import { CronScheduler } from "./infrastructure/services/CronScheduler";
+import assessmentRoute from "./presentation/routes/AssessmentRoutes";
 
 dotenv.config();
 
@@ -41,7 +42,8 @@ app.use(morgan('dev'));
 app.use("/api/students", studentRoutes);
 app.use("/api/tutor", tutorRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/messages", messageRoute);
+app.use("/api/chat", messageRoute);
+app.use("/api/assessment", assessmentRoute);
 
 app.use(errorHandler);
 

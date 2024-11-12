@@ -143,7 +143,7 @@ public login = async (req: Request, res: Response, next: NextFunction): Promise<
     try {
         const { accessToken, refreshToken, student } = await this._loginStudentUseCase.execute(email, password);
         
-        JWTService.setTokens(res, accessToken, refreshToken, student.role);
+        JWTService.setTokens(res, accessToken, refreshToken);
 
         res.status(HttpStatusEnum.OK).json({
             success: true,
@@ -205,6 +205,8 @@ public login = async (req: Request, res: Response, next: NextFunction): Promise<
 
   //DAHSBOARD
   async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+    console.log("Inside getDashboard in student controller");
+    
     try {
       const studentId = req.userId;
       

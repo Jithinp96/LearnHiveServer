@@ -24,7 +24,7 @@ export class OrderRepository implements IOrderRepository {
     return SlotOrderModel.find({ studentId })
     .populate({
       path: "slotId",
-      select: "subject level date startTime endTime",
+      select: "subject level date startTime endTime meetingLink",
     })
     .then((slots) => slots as ISlotOrder[]);
   }
