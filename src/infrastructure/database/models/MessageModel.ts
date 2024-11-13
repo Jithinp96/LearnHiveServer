@@ -10,7 +10,6 @@ interface Message extends Document {
 const messageSchema: Schema = new Schema({
     senderId: {
         type: mongoose.Schema.Types.ObjectId,
-        
         required: true
     },
     receiverId: {

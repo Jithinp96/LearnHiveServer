@@ -4,6 +4,4 @@ export interface IMessage {
     receiverId: string,
     message: string,
     status: string,
-    // createdAt: Date,
-    // updatedAt: Date,
 }

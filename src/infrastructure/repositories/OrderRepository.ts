@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 import { ICourseOrder } from "../../domain/entities/ICourseOrder";
 import { ISlotOrder } from "../../domain/entities/ISlotOrder";

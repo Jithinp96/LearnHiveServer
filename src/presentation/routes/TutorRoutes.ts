@@ -29,6 +29,8 @@ tutorRoutes.post('/reset-password', tutorController.resetPassword);
 tutorRoutes.post('/login', tutorController.login);
 tutorRoutes.post('/logout/:role', AuthMiddleware(authService), tutorController.logout);
 
+tutorRoutes.get('/dashboard', AuthMiddleware(authService), tutorController.getDashboard)
+
 tutorRoutes.get('/profile/:id', AuthMiddleware(authService), tutorController.getProfile);
 tutorRoutes.get('/tutorprofile/:id', tutorController.getProfile);
 tutorRoutes.put("/profile/:id/add-education", AuthMiddleware(authService), tutorController.addEducation);

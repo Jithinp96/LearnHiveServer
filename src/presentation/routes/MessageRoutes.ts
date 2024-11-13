@@ -14,9 +14,11 @@ const authService = new AuthService(studentRepo, tutorRepo)
 
 const messageController = new MessageController()
 
-messageRoute.post("/:receiverRole/:receiverId", AuthMiddleware(authService), messageController.sendMessage)
+messageRoute.post("/send", AuthMiddleware(authService), messageController.sendMessage)
 // messageRoute.get("/:receiverRole/:receiverId", AuthMiddleware(authService), messageController.getUserConversations)
-messageRoute.get("/:receiverRole/:receiverId/:conversationId", AuthMiddleware(authService), messageController.getMessages)
-messageRoute.get("/", AuthMiddleware(authService), messageController.getAllConversations)
+// messageRoute.get("/:receiverRole/:receiverId/:conversationId", AuthMiddleware(authService), messageController.getMessages)
+messageRoute.get("/messages", AuthMiddleware(authService), messageController.getUserMessages)
+// messageRoute.get("/", AuthMiddleware(authService), messageController.getAllConversations)
+messageRoute.get("/", AuthMiddleware(authService), messageController.getUserConversations)
 
 export default messageRoute

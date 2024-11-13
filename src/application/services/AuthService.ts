@@ -49,7 +49,7 @@ export class AuthService implements IAuthService {
 
     async validateAccessToken(token: string): Promise<ValidationResult | null> {
         const decoded = JWTService.verifyAccessToken(token);
-        console.log("decoded inside validate access token: ", decoded);
+        // console.log("decoded inside validate access token: ", decoded);
         
         if (!decoded) return null;
 

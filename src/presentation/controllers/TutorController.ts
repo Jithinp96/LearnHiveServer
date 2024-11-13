@@ -20,6 +20,9 @@ import { SaveSlotPreferenceUseCase } from "../../application/useCases/tutor/Save
 import { TutorSlotPreferenceRepository } from "../../infrastructure/repositories/TutorSlotPreferenceRepository";
 import { MultipleSlotSchedulerRepository } from "../../infrastructure/repositories/MultipleSlotSchedulerRepository";
 import { GenerateMultipleSlotUseCase } from "../../application/useCases/tutor/GenerateMultipleSlotUseCase";
+import { GetTutorDashboardUseCase } from "../../application/useCases/tutor/GetTutorDashboardUseCase";
+import { OrderRepository } from "../../infrastructure/repositories/OrderRepository";
+import { TutorDashboardRepository } from "../../infrastructure/repositories/TutorDashboardRepository";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -28,6 +31,9 @@ interface AuthenticatedRequest extends Request {
 export class TutorController {
   private _tutorRepo: TutorRepository;
   private _tutorSlotRepo: TutorSlotRepository;
+  private _tutorSlotPreferenceRepository: TutorSlotPreferenceRepository;
+  private _tutorDashboardRepo: TutorDashboardRepository;
+
   private _registerTutor: RegisterTutor;
   private _verifyOTPUseCase: VerifyOTPTutor;
   private _loginTutorUseCase: LoginTutorUseCase;
@@ -36,12 +42,13 @@ export class TutorController {
   private _resetPasswordUseCase: ResetPassword;
   private _tutorUseCase: TutorUseCase;
   private _saveSlotPreferenceUseCase: SaveSlotPreferenceUseCase;
-  private _tutorSlotPreferenceRepository: TutorSlotPreferenceRepository;
+  private _getTutorDashboardUseCase: GetTutorDashboardUseCase
 
   constructor() {
       this._tutorRepo = new TutorRepository();
       this._tutorSlotRepo = new TutorSlotRepository();
       this._tutorSlotPreferenceRepository = new TutorSlotPreferenceRepository();
+      this._tutorDashboardRepo = new TutorDashboardRepository()
 
       this._registerTutor = new RegisterTutor(this._tutorRepo);
       this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
@@ -51,7 +58,8 @@ export class TutorController {
       this._resetPasswordUseCase = new ResetPassword(this._tutorRepo);
       this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
       this._saveSlotPreferenceUseCase = new SaveSlotPreferenceUseCase(this._tutorSlotPreferenceRepository)
-  }
+      this._getTutorDashboardUseCase = new GetTutorDashboardUseCase(this._tutorDashboardRepo)
+    }
 
   //REGISTER TUTOR
   public register = async (req: Request, res: Response): Promise<void> => {
@@ -167,10 +175,25 @@ export class TutorController {
     return LogoutTutorUseCase.execute(req, res, role);
   }
 
-  public getProfile = async (req: AuthenticatedRequest, res: Response) => {
-    // const {id} = req.params;
+  public getDashboard = async (req: AuthenticatedRequest, res: Response) => {
     const tutorId = req.userId;
-    console.log("id: ", tutorId);
+
+    if (!tutorId) {
+        res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });
+        return;
+    }
+
+    try {
+        const dashboardData = await this._getTutorDashboardUseCase.execute(tutorId);
+        res.status(HttpStatusEnum.OK).json(dashboardData);
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: 'Failed to fetch dashboard data. Please try again later.' });
+    }
+};
+
+  public getProfile = async (req: AuthenticatedRequest, res: Response) => {
+    const tutorId = req.userId;
 
     if(!tutorId) {
       res.status(HttpStatusEnum.UNAUTHORIZED).json({ message: 'Unauthorized: Tutor ID is required.' });

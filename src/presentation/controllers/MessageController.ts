@@ -7,6 +7,7 @@ import { UserRole } from "../../shared/enums/UserRoleEnum";
 import { GetUserConversationsUseCase } from "../../application/useCases/message/GetUserConversationUseCase";
 import { GetAllConversationsUseCase } from "../../application/useCases/message/GetAllConversationUseCase";
 import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
+import { GetUserMessagesUseCase } from "../../application/useCases/message/GetUserMessagesUseCase";
 
 interface AuthenticatedRequest extends Request {
     userId?: string;
@@ -16,6 +17,7 @@ interface AuthenticatedRequest extends Request {
 export class MessageController {
     private _sendMessageUseCase: SendMessageUseCase
     private _getMessagesUseCase: GetMessagesUseCase
+    private _getUserMessagesUseCase: GetUserMessagesUseCase
     private _getUserConversationUseCase: GetUserConversationsUseCase
     private _getAllConversationUseCase: GetAllConversationsUseCase
 
@@ -24,6 +26,7 @@ export class MessageController {
         const conversationRepo = new ConversationRepository();
         this._sendMessageUseCase = new SendMessageUseCase(messageRepo, conversationRepo);
         this._getMessagesUseCase = new GetMessagesUseCase(messageRepo);
+        this._getUserMessagesUseCase = new GetUserMessagesUseCase(messageRepo);
         this._getUserConversationUseCase = new GetUserConversationsUseCase(conversationRepo)
         this._getAllConversationUseCase = new GetAllConversationsUseCase(conversationRepo)
     }
@@ -37,9 +40,12 @@ export class MessageController {
         }
 
         try {
+            console.log("req.body: ", req.body);
+            
             const { receiverRole, receiverId, text } = req.body;
 
             const message = await this._sendMessageUseCase.execute(senderId, senderRole, receiverId, receiverRole, text);
+            // console.log("message: ", message);
             
             return res.status(HttpStatusEnum.CREATED).json(message);
         } catch (error) {
@@ -49,8 +55,19 @@ export class MessageController {
 
     public getUserConversations = async (req: AuthenticatedRequest, res: Response) => {
         try {
+            console.log("Reached getUserConversations controller");
+            
             const receiverId = req.params.receiverId;
-            const conversations = await this._getUserConversationUseCase.execute(receiverId);
+            const currentUserId = req.userId
+            const currentUserRole = req.userRole
+            // console.log("currentUserId: ", currentUserId);
+            // console.log("currentUserRole: ", currentUserRole);
+            
+            if(!currentUserId || !currentUserRole) {
+                return "User detials missing in token"
+            }
+
+            const conversations = await this._getUserConversationUseCase.execute(currentUserId, currentUserRole);
             res.status(HttpStatusEnum.OK).json({ conversations });
           } catch (error) {
             res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to fetch conversations." });
@@ -67,6 +84,20 @@ export class MessageController {
           }
     }
 
+    public getUserMessages = async(req: AuthenticatedRequest, res: Response) => {
+        try {
+            const receiverId = req.query.receiverId as string;
+            const currentUserId = req.userId;
+            if(!currentUserId || !receiverId) {
+                return "User detials missing in token"
+            }
+            const messages = await this._getUserMessagesUseCase.execute(currentUserId, receiverId);
+            res.status(200).json({ messages });
+          } catch (error) {
+            res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: "Failed to fetch messages." });
+          }
+    }
+
     public getAllConversations = async (req: AuthenticatedRequest, res: Response) => {
         try {
             const conversations = await this._getAllConversationUseCase.execute();
@@ -76,4 +107,12 @@ export class MessageController {
             return res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ success: false, message: "Failed to fetch conversations" });
         }
     }
+
+    // public getUserConversation = async(req: AuthenticatedRequest, res: Response) => {
+    //     try {
+            
+    //     } catch (error) {
+            
+    //     }
+    // }
 }

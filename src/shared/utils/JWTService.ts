@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 export class JWTService {
     static generateAccessToken(payload: object): string {
-        console.log("payload from generate access token: ", payload);
+        // console.log("payload from generate access token: ", payload);
         
         try {
             const token = jwt.sign(payload, process.env.JWT_ACCESS_SECRET as string, {

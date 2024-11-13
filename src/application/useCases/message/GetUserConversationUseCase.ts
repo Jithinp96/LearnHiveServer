@@ -4,7 +4,7 @@ import { IConversationRepository } from "../../../domain/interfaces/IConversatio
 export class GetUserConversationsUseCase {
     constructor(private _conversationRepository: IConversationRepository) {}
   
-    async execute(receiverId: string): Promise<IConversation[]> {
-      return await this._conversationRepository.getConversations(receiverId);
+    async execute(currentUserId: string, currentUserRole: string): Promise<{ _id: string; name: string, profileImage: string, role: string }[]> {
+      return await this._conversationRepository.getUserConversations(currentUserId, currentUserRole);
     }
-  }
+}

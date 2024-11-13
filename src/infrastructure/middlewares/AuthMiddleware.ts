@@ -9,7 +9,7 @@ interface IAuthRequest extends Request {
 
 const AuthMiddleware = (authService: IAuthService) => {
     return async (req: IAuthRequest, res: Response, next: NextFunction) => {
-        console.log("Inside Auth middleware");
+        // console.log("Inside Auth middleware");
         try {
             const refreshToken = req.cookies.refreshToken;
             let accessToken = req.cookies.accessToken;
