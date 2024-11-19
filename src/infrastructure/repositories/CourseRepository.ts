@@ -26,11 +26,22 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
-    async findAllCourse(): Promise<ICourse[]> {
+    // async findAllCourse(): Promise<ICourse[]> {
+    //     try {
+    //         const course = await CourseModel.find({ isApproved: false, isBlocked: false })
+    //         .populate('category', 'name');
+    //         return course
+    //     } catch (error) {
+    //         console.error('Error fetching courses:', error);
+    //         throw new Error('Failed to fetch courses');
+    //     }
+    // }
+
+    async findAllCourse(filters: any): Promise<ICourse[]> {
         try {
-            const course = await CourseModel.find({ isApproved: false, isBlocked: false })
-            .populate('category', 'name');
-            return course
+            const courses = await CourseModel.find(filters)
+                .populate('category', 'name');
+            return courses;
         } catch (error) {
             console.error('Error fetching courses:', error);
             throw new Error('Failed to fetch courses');

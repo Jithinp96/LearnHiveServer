@@ -41,7 +41,11 @@ export class LoginStudentUseCase {
             
             return { accessToken, refreshToken, student };
         } catch (error) {
-            // console.log("Inside catch of student login");
+            if (error instanceof InvalidCredentialsError ||
+                error instanceof AccountBlockedError ||
+                error instanceof AccountNotVerifiedError) {
+              throw error;
+            }
             throw new LoginFailed();
         }
     }

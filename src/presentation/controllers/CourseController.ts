@@ -159,9 +159,44 @@ export class CourseController {
         }
     };
 
+    // public fetchAllCourses = async(req: Request, res: Response) => {
+    //     try {
+    //         const courses = await this._courseUseCase.fetchAllCourse();
+    //         res.status(200).json(courses);
+    //     } catch (error) {
+    //         res.status(500).json({ error: 'Failed to fetch courses' });
+    //     }
+    // }
+
     public fetchAllCourses = async(req: Request, res: Response) => {
         try {
-            const courses = await this._courseUseCase.fetchAllCourse();
+            const { search, categories, levels } = req.query;
+            
+            const filters: any = {
+                isApproved: false,
+                isBlocked: false
+            };
+    
+            // Add search filter
+            if (search) {
+                filters.title = { $regex: search as string, $options: 'i' };
+            }
+    
+            // Add category filter
+            if (categories) {
+                filters.category = {
+                    $in: (categories as string).split(',')
+                };
+            }
+    
+            // Add level filter
+            if (levels) {
+                filters.level = {
+                    $in: (levels as string).split(',')
+                };
+            }
+    
+            const courses = await this._courseUseCase.fetchAllCourse(filters);
             res.status(200).json(courses);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch courses' });

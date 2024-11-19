@@ -4,7 +4,7 @@ export const ProfileFieldsSchema: Schema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, index: true },
   mobile: { type: Number, required: true },
-  password: { type: String, required: true },
+  password: { type: String },
   isVerified: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   profileImage: { 

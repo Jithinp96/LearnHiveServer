@@ -11,6 +11,8 @@ export class StudentRepository implements IStudentRepository {
             await newStudent.save();
             return newStudent.toObject() as IStudent;
         } catch (error) {
+            console.log("Error from create student in studentRepo: ", error);
+            
             throw new DatabaseError();
         }
     }

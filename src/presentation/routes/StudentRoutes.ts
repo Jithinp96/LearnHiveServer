@@ -38,6 +38,7 @@ studentRoutes.post('/forgot-password', studentController.forgotPassword);
 studentRoutes.post('/reset-password', studentController.resetPassword);
 
 studentRoutes.post('/login', studentController.login);
+studentRoutes.post('/google-login', studentController.googleLogin)
 studentRoutes.post('/logout/:role', AuthMiddleware(authService), studentController.logout);
 
 studentRoutes.get('/dashboard', AuthMiddleware(authService), studentController.getDashboard)

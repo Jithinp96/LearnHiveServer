@@ -11,15 +11,18 @@ import { CourseCategoryRepository } from "../../infrastructure/repositories/Cour
 import { CourseCategoryUseCases } from "../../application/useCases/admin/CourseCategory";
 import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
 import { LogoutAdminUseCase } from "../../application/useCases/admin/LogoutAdminUseCase";
+import { GetAdminDashboardStatsUseCase } from "../../application/useCases/admin/GetAdminDashboardUseCase";
+import { AdminDashboardRepository } from "../../infrastructure/repositories/AdminDashboardRepository";
 
 
 const studentRepository = new StudentRepository();
 const tutorRepository = new TutorRepository();
+const adminDashboardRepository = new AdminDashboardRepository()
 const courseCategoryRepository = new CourseCategoryRepository();
 
 const getAllStudents = new GetStudentsList(studentRepository);
 const courseCategoryUseCases = new CourseCategoryUseCases(courseCategoryRepository);
-
+const getAdminDashboardUseCase = new GetAdminDashboardStatsUseCase(adminDashboardRepository)
 export class AdminController {
     private _adminLogin: AdminLogin;
 
@@ -48,6 +51,15 @@ export class AdminController {
         return LogoutAdminUseCase.execute(req, res);
       }
 
+    public getAdminDashboard = async(req: Request, res: Response) => {
+        try {
+            const stats = await getAdminDashboardUseCase.execute();
+            res.json(stats);
+          } catch (error) {
+            console.error('Error fetching dashboard stats:', error);
+            res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
+          }
+    }
     public async getAllStudents(req: Request, res: Response): Promise<void> {
         console.log("Inside admin controller get all students");
         

@@ -24,6 +24,8 @@ const authService = new AuthService(studentRepo, tutorRepo)
 adminRoutes.post('/login', (req, res) => adminController.login(req, res));
 adminRoutes.post('/logout/:role', adminController.logout);
 
+adminRoutes.get('/dashboard', AuthMiddleware(authService), adminController.getAdminDashboard)
+
 adminRoutes.get('/students', AuthMiddleware(authService), (req, res) => adminController.getAllStudents(req, res));
 adminRoutes.get('/student/:id', AuthMiddleware(authService), (req, res) => adminController.getStudentById(req, res));
 adminRoutes.patch('/student/:id/block', AuthMiddleware(authService), (req, res) => adminController.blockStudent(req, res));

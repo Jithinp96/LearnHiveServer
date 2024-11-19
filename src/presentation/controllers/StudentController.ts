@@ -28,6 +28,9 @@ import { SuccessMessageEnum } from "../../shared/enums/SuccessMessageEnum";
 import { AuthErrorEnum, StudentErrorEnum } from "../../shared/enums/ErrorMessagesEnum";
 import { ResendOTPUseCase } from "../../application/useCases/student/ResendOTPUseCase";
 import { OTPRepository } from "../../infrastructure/repositories/OTPRepository";
+import { jwtDecode } from "jwt-decode";
+import { GoogleSignInUseCase } from "../../application/useCases/student/GoogleSignInUseCase";
+import { IGoogleJWT } from "../../domain/entities/user/IGoogleJWT";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -47,6 +50,7 @@ export class StudentController {
   private _registerStudentUseCase: RegisterStudentUseCase;
   private _verifyOTPUseCase: VerifyOTP;
   private _loginStudentUseCase: LoginStudentUseCase;
+  private _googleSignInUseCase: GoogleSignInUseCase;
   private _jwtService: JWTService;
   private _forgotPasswordUseCase: ForgotPasswordUseCase;
   private _resetPasswordUseCase: ResetPasswordUseCase;
@@ -67,6 +71,7 @@ export class StudentController {
     this._registerStudentUseCase = new RegisterStudentUseCase(this._studentRepo, this._emailService);
     this._verifyOTPUseCase = new VerifyOTP(this._studentRepo);
     this._loginStudentUseCase = new LoginStudentUseCase(this._studentRepo, this._jwtService)
+    this._googleSignInUseCase = new GoogleSignInUseCase(this._studentRepo)
     this._forgotPasswordUseCase = new ForgotPasswordUseCase(this._studentRepo);
     this._resetPasswordUseCase = new ResetPasswordUseCase(this._studentRepo);
     this._studentUseCase = new StudentUseCase(this._studentRepo);
@@ -76,9 +81,9 @@ export class StudentController {
   }
 
   // Register a new student
-  public register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { name, email, mobile, password } = req.body;
-        
+    public register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const { name, email, mobile, password } = req.body;
+            
         try {
             await this._registerStudentUseCase.execute({ name, email, mobile, password });
             
@@ -95,7 +100,7 @@ export class StudentController {
         } catch (error) {
             next(error);
         }
-  };
+    };
 
   public resendOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -154,6 +159,28 @@ public login = async (req: Request, res: Response, next: NextFunction): Promise<
         next(error);
     }
 };
+
+public googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+    const { credentials } = req.body;
+    const decoded: IGoogleJWT = jwtDecode(credentials);
+    const { name, email, sub } = decoded;
+
+    try {
+        const { accessToken, refreshToken, student } = await this._googleSignInUseCase.execute(email, name, sub);
+
+        JWTService.setTokens(res, accessToken, refreshToken);
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            message: SuccessMessageEnum.LOGIN_SUCCESS,
+            student
+        });
+    } catch (error) {
+        console.log("Catch of google signin controller: ", error);
+        
+        next(error);
+    }
+}
 
 // Forgot password
   public forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
