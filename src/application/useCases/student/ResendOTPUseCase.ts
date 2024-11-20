@@ -22,9 +22,10 @@ export class ResendOTPUseCase {
         if (dbOTP) {
             await this.otpRepository.delete(dbOTP._id);
         }
-
+        console.log("New OTP: ", otp);
+        
         await this.otpRepository.save({ email, otp, expiredAt });
-        await this.emailService.send(email, `Your OTP is: ${otp}`);
+        // await this.emailService.send(email, `Your OTP is: ${otp}`);
 
         return SuccessMessageEnum.OTP_RESENT;
     }

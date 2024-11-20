@@ -1,0 +1,24 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const AssessmentController_1 = require("../controllers/AssessmentController");
+const AuthMiddleware_1 = __importDefault(require("../../infrastructure/middlewares/AuthMiddleware"));
+const AuthService_1 = require("../../application/services/AuthService");
+const StudentRepository_1 = require("../../infrastructure/repositories/StudentRepository");
+const TutorRepository_1 = require("../../infrastructure/repositories/TutorRepository");
+const assessmentRoute = (0, express_1.Router)();
+const studentRepo = new StudentRepository_1.StudentRepository();
+const tutorRepo = new TutorRepository_1.TutorRepository();
+const authService = new AuthService_1.AuthService(studentRepo, tutorRepo);
+const assessmentController = new AssessmentController_1.AssessmentController();
+assessmentRoute.post('/create', (0, AuthMiddleware_1.default)(authService), assessmentController.createAssessment);
+assessmentRoute.get('/', (0, AuthMiddleware_1.default)(authService), assessmentController.fetchAssessmentsByTutor);
+assessmentRoute.get('/assessment-list', (0, AuthMiddleware_1.default)(authService), assessmentController.fetchAssessmentsForStudent);
+assessmentRoute.get('/:assessmentId', (0, AuthMiddleware_1.default)(authService), assessmentController.fetchAssessmentById);
+assessmentRoute.post('/:assessmentId/submit', (0, AuthMiddleware_1.default)(authService), assessmentController.submitAssessment);
+assessmentRoute.get('/assessment-result/:assessmentId', (0, AuthMiddleware_1.default)(authService), assessmentController.fetchAssessmentResultById);
+// assessmentRoute.post('/submit', AuthMiddleware(authService), assessmentController.submitAssessment);
+exports.default = assessmentRoute;

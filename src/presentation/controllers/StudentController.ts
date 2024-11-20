@@ -1,17 +1,21 @@
 import { Request, Response, NextFunction } from "express";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { jwtDecode } from "jwt-decode";
 
 import { RegisterStudentUseCase } from "../../application/useCases/student/RegisterStudent";
 import { VerifyOTP } from "../../application/useCases/VerifyOTP";
 import { LoginStudentUseCase } from "../../application/useCases/student/StudentLogin";
+import { GoogleSignInUseCase } from "../../application/useCases/student/GoogleSignInUseCase";
 import { LogoutStudentUseCase } from "../../application/useCases/student/LogoutStudent";
 import { TutorUseCase } from "../../application/useCases/tutor/TutorUseCase";
 import { ForgotPasswordUseCase } from "../../application/useCases/student/ForgotPassword";
 import { ResetPasswordUseCase } from "../../application/useCases/student/ResetPassword";
 import { StudentUseCase } from "../../application/useCases/student/StudentUseCase";
 import { CourseCategoryUseCases } from "../../application/useCases/admin/CourseCategory";
+import { ResendOTPUseCase } from "../../application/useCases/student/ResendOTPUseCase";
 
 import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
+import { OTPRepository } from "../../infrastructure/repositories/OTPRepository";
 import { TutorRepository } from "../../infrastructure/repositories/TutorRepository";
 import { TutorSlotRepository } from "../../infrastructure/repositories/TutorSlotRepository";
 import { CourseCategoryRepository } from "../../infrastructure/repositories/CourseCategoryRepository";
@@ -26,10 +30,6 @@ import { s3 } from "../../infrastructure/config/awsS3Config";
 import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
 import { SuccessMessageEnum } from "../../shared/enums/SuccessMessageEnum";
 import { AuthErrorEnum, StudentErrorEnum } from "../../shared/enums/ErrorMessagesEnum";
-import { ResendOTPUseCase } from "../../application/useCases/student/ResendOTPUseCase";
-import { OTPRepository } from "../../infrastructure/repositories/OTPRepository";
-import { jwtDecode } from "jwt-decode";
-import { GoogleSignInUseCase } from "../../application/useCases/student/GoogleSignInUseCase";
 import { IGoogleJWT } from "../../domain/entities/user/IGoogleJWT";
 
 interface AuthenticatedRequest extends Request {
@@ -98,6 +98,8 @@ export class StudentController {
                 message: SuccessMessageEnum.REGISTRATION_SUCCESS
             });
         } catch (error) {
+            console.log("Inside register student controller catch: ", error);
+            
             next(error);
         }
     };

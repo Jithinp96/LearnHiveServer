@@ -45,7 +45,7 @@ export class RegisterStudentUseCase {
 
             // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
         } catch (error) {
-
+            console.log("Inside register student useCase catch: ", error);
             if (error instanceof StudentAlreadyExistsError) {
                 throw error;
             }
