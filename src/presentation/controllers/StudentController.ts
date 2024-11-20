@@ -90,7 +90,7 @@ export class StudentController {
             res.cookie("OTPEmail", email, {
                 httpOnly: true,
                 maxAge: 24 * 60 * 60 * 1000,
-                secure: process.env.NODE_ENV === 'production'
+                secure: process.env.NODE_ENV !== "development"
             });
 
             res.status(HttpStatusEnum.CREATED).json({
