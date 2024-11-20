@@ -15,8 +15,8 @@ const AuthMiddleware = (authService) => {
         try {
             const refreshToken = req.cookies.refreshToken;
             let accessToken = req.cookies.accessToken;
-            // console.log("refreshToken: ", refreshToken);
-            // console.log("accessToken: ", accessToken);
+            console.log("refreshToken: ", refreshToken);
+            console.log("accessToken: ", accessToken);
             if (!refreshToken) {
                 return res.status(401).json({
                     message: "Not authorized, missing refresh token"
