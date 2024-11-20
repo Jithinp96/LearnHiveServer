@@ -42,14 +42,28 @@ class JWTService {
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== "development",
-            maxAge: 15 * 60 * 1000,
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Important for cross-origin
+            maxAge: 15 * 60 * 1000, // 15 minutes
         });
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== "development",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
     }
+    // static setTokens(res: Response, accessToken: string, refreshToken: string): void {
+    //     res.cookie('accessToken', accessToken, {
+    //         httpOnly: true,
+    //         secure: process.env.NODE_ENV !== "development",
+    //         maxAge: 15 * 60 * 1000,
+    //     });
+    //     res.cookie('refreshToken', refreshToken, {
+    //         httpOnly: true,
+    //         secure: process.env.NODE_ENV !== "development",
+    //         maxAge: 7 * 24 * 60 * 60 * 1000,
+    //     });
+    // }
     static clearTokens(res) {
         res.clearCookie('accessToken');
         res.clearCookie('refreshToken');
