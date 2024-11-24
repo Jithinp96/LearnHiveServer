@@ -55,6 +55,15 @@ export class CourseUseCase {
         }
     }
 
+    async fetchCourseViewer(courseId: string, studentId: string): Promise<ICourse | null> {
+        try {
+            return this._courseRepository.findCourseById(courseId, studentId);
+        } catch (error) {
+            console.error('Error fetching course details:', error);
+            throw new Error('Failed to fetch course details');
+        }
+    }
+
     async approveCourse(courseId: string): Promise<void> {
         const course = await this._courseRepository.findCourseById(courseId);
 

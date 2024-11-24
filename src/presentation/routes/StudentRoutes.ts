@@ -64,8 +64,9 @@ studentRoutes.get('/getcategories', courseController.getAllCategories);
 
 studentRoutes.get('/allcourses', courseController.fetchAllCourses);
 studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
+studentRoutes.get('/course-view/:courseId', AuthMiddleware(authService), courseController.fetchCourseView);
 // studentRoutes.post('/initialize-course-progress', courseController.initializeCourseProgress);
-studentRoutes.put('/update-course-progress', courseController.updateCourseProgress)
+studentRoutes.put('/course-progress', AuthMiddleware(authService), courseController.updateCourseProgress)
 
 studentRoutes.get('/course-orders/', AuthMiddleware(authService), orderController.getCourseOrdersByStudent)
 studentRoutes.get('/slot-orders/', AuthMiddleware(authService), orderController.getSlotOrdersByStudent)

@@ -2,7 +2,7 @@ import { ICourse } from '../entities/ICourse';
   
 export interface ICourseRepository {
     addCourse(course: ICourse): Promise<ICourse>;
-    findCourseById(id: string): Promise<ICourse | null>;
+    findCourseById(id: string, studentId?: string): Promise<ICourse | null>;
     findCourseByTutorId(tutorId: string): Promise<ICourse[]>;
     findAllCourse(filters: any): Promise<ICourse[]>;
     findAllCourseForAdmin(): Promise<ICourse[]>;

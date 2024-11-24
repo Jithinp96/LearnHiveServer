@@ -11,6 +11,7 @@ import { InitializeCourseProgressUseCase } from '../../application/useCases/cour
 import { ProgressRepository } from '../../infrastructure/repositories/ProgressRepository';
 import { UpdateCourseProgressUseCase } from '../../application/useCases/course/UpdateCourseProgressUseCase';
 import { OrderRepository } from '../../infrastructure/repositories/OrderRepository';
+import { AuthErrorEnum } from '../../shared/enums/ErrorMessagesEnum';
 
 const courseCategoryRepository = new CourseCategoryRepository();
 const courseCategoryUseCases = new CourseCategoryUseCases(courseCategoryRepository);
@@ -225,25 +226,24 @@ export class CourseController {
         }
     }
 
-    // public initializeCourseProgress = async(req: AuthenticatedRequest, res: Response) => {
-    //     try {
-    //         const studentId = req.userId;
-    //         if (!studentId) {
-    //             return res.status(400).json({ message: "StudentId missing in controller" });
-    //         }
-    
-    //         const { courseId, totalVideos } = req.body;
-    //         if (!courseId || !totalVideos) {
-    //             return res.status(400).json({ message: "CourseId and totalVideos are required." });
-    //         }
-    
-    //         await this._initializeCourseProgressUseCase.execute({ studentId, courseId, totalVideos });
-    //         res.status(201).json({ message: "Progress initialized successfully." });
-    //     } catch (error) {
-    //         console.error("Error initializing course progress:", error);
-    //         res.status(500).json({ message: "Failed to initialize progress.", error: error });
-    //     }
-    // }
+    public fetchCourseView = async(req: AuthenticatedRequest, res: Response) => {
+        try {
+            const { courseId } = req.params;
+            const studentId = req.userId;
+
+            if (!studentId) {
+                return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+                    success: false,
+                    message: AuthErrorEnum.INVALID_ID
+                });
+              }
+            const course = await this._courseUseCase.fetchCourseViewer(courseId, studentId);
+            
+            res.status(200).json(course);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch course details' });
+        }
+    }
 
     public updateCourseProgress = async(req: AuthenticatedRequest, res: Response) => {
         try {

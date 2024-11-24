@@ -1,6 +1,7 @@
 import { ICourse } from "../../domain/entities/ICourse";
 import { ICourseRepository } from "../../domain/interfaces/ICourseRepository";
 import { CourseModel } from "../database/models/CourseModel";
+import { CourseProgress } from "../database/models/CourseProgressSchema";
 
 export class CourseRepository implements ICourseRepository {
     async addCourse(course: ICourse): Promise<ICourse> {
@@ -46,13 +47,47 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
-    async findCourseById(courseId: string): Promise<ICourse | null> {
+    // async findCourseById(courseId: string): Promise<ICourse | null> {
+    //     try {
+    //         const course = await CourseModel.findById(courseId)
+    //             .populate('tutorId', 'name profileImage')
+    //             .populate('category', 'name')
+    //             .populate('reviews.userId', 'name profileImage')
+    //             .populate('comments.userId', 'name profileImage')
+    //         return course;
+    //     } catch (error) {
+    //         console.error('Error fetching course details:', error);
+    //         throw new Error('Failed to fetch course details');
+    //     }
+    // }
+
+    async findCourseById(courseId: string, studentId?: string): Promise<ICourse | null> {
         try {
             const course = await CourseModel.findById(courseId)
                 .populate('tutorId', 'name profileImage')
                 .populate('category', 'name')
                 .populate('reviews.userId', 'name profileImage')
-                .populate('comments.userId', 'name profileImage')
+                .populate('comments.userId', 'name profileImage');
+    
+            if (course && studentId) {
+                // Fetch progress information
+                const progress = await CourseProgress.findOne({
+                    courseId: courseId,
+                    studentId: studentId
+                });
+    
+                // Add progress information to the course object
+                return {
+                    ...course.toObject(),
+                    progress: progress ? {
+                        completedVideos: progress.completedVideos,
+                        progressPercentage: progress.progressPercentage,
+                        lastWatchedVideo: progress.lastWatchedVideo,
+                        isCompleted: progress.isCompleted
+                    } : null
+                };
+            }
+    
             return course;
         } catch (error) {
             console.error('Error fetching course details:', error);

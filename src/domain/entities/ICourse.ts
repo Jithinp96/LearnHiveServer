@@ -20,5 +20,13 @@ export interface ICourse {
     isListed: boolean;
     videos: IVideo[];
     reviews: IReview[];
-    comments: IComment[];
+    comments: IComment[]; 
+    progress?: CourseProgress | null;
+}
+
+interface CourseProgress {
+    completedVideos: string[];
+    progressPercentage: number;
+    lastWatchedVideo: string | null;
+    isCompleted: boolean;
 }

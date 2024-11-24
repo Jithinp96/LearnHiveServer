@@ -56,5 +56,5 @@ export class OrderRepository implements IOrderRepository {
         { studentId, courseId },
         { completionStatus: status }
     );
-}
+  }
 }
