@@ -55,5 +55,10 @@ class OrderRepository {
             return Object.assign(Object.assign({}, updatedOrder), { _id: updatedOrder._id.toString() });
         });
     }
+    updateCompletionStatus(studentId, courseId, status) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield CourseOrderModel_1.CourseOrder.updateOne({ studentId, courseId }, { completionStatus: status });
+        });
+    }
 }
 exports.OrderRepository = OrderRepository;

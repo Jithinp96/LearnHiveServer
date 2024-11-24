@@ -33,14 +33,6 @@ class CourseUseCase {
             return video;
         });
     }
-    // async fetchAllCourse(): Promise<ICourse[]> {
-    //     try {
-    //         return this._courseRepository.findAllCourse();
-    //     } catch (error) {
-    //         console.error('Error fetching courses:', error);
-    //         throw new Error('Failed to fetch courses');
-    //     }
-    // }
     fetchAllCourse(filters) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -67,6 +59,17 @@ class CourseUseCase {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return this._courseRepository.findCourseById(courseId);
+            }
+            catch (error) {
+                console.error('Error fetching course details:', error);
+                throw new Error('Failed to fetch course details');
+            }
+        });
+    }
+    fetchCourseViewer(courseId, studentId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return this._courseRepository.findCourseById(courseId, studentId);
             }
             catch (error) {
                 console.error('Error fetching course details:', error);

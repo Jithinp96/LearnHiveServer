@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CourseRepository = void 0;
 const CourseModel_1 = require("../database/models/CourseModel");
+const CourseProgressSchema_1 = require("../database/models/CourseProgressSchema");
 class CourseRepository {
     addCourse(course) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -28,7 +29,6 @@ class CourseRepository {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const course = yield CourseModel_1.CourseModel.find({ tutorId }).populate('category', 'name');
-                console.log(course);
                 return course;
             }
             catch (error) {
@@ -37,16 +37,6 @@ class CourseRepository {
             }
         });
     }
-    // async findAllCourse(): Promise<ICourse[]> {
-    //     try {
-    //         const course = await CourseModel.find({ isApproved: false, isBlocked: false })
-    //         .populate('category', 'name');
-    //         return course
-    //     } catch (error) {
-    //         console.error('Error fetching courses:', error);
-    //         throw new Error('Failed to fetch courses');
-    //     }
-    // }
     findAllCourse(filters) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -73,14 +63,41 @@ class CourseRepository {
             }
         });
     }
-    findCourseById(courseId) {
+    // async findCourseById(courseId: string): Promise<ICourse | null> {
+    //     try {
+    //         const course = await CourseModel.findById(courseId)
+    //             .populate('tutorId', 'name profileImage')
+    //             .populate('category', 'name')
+    //             .populate('reviews.userId', 'name profileImage')
+    //             .populate('comments.userId', 'name profileImage')
+    //         return course;
+    //     } catch (error) {
+    //         console.error('Error fetching course details:', error);
+    //         throw new Error('Failed to fetch course details');
+    //     }
+    // }
+    findCourseById(courseId, studentId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const course = yield CourseModel_1.CourseModel.findById(courseId)
-                    .populate('tutorId', 'name')
+                    .populate('tutorId', 'name profileImage')
                     .populate('category', 'name')
                     .populate('reviews.userId', 'name profileImage')
                     .populate('comments.userId', 'name profileImage');
+                if (course && studentId) {
+                    // Fetch progress information
+                    const progress = yield CourseProgressSchema_1.CourseProgress.findOne({
+                        courseId: courseId,
+                        studentId: studentId
+                    });
+                    // Add progress information to the course object
+                    return Object.assign(Object.assign({}, course.toObject()), { progress: progress ? {
+                            completedVideos: progress.completedVideos,
+                            progressPercentage: progress.progressPercentage,
+                            lastWatchedVideo: progress.lastWatchedVideo,
+                            isCompleted: progress.isCompleted
+                        } : null });
+                }
                 return course;
             }
             catch (error) {

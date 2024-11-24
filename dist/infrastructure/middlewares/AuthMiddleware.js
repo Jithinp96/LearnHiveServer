@@ -9,40 +9,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const HttpStatusEnum_1 = require("../../shared/enums/HttpStatusEnum");
+const TokenError_1 = require("../../domain/errors/TokenError");
 const AuthMiddleware = (authService) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-        // console.log("Inside Auth middleware");
         try {
             const refreshToken = req.cookies.refreshToken;
             let accessToken = req.cookies.accessToken;
-            console.log("refreshToken: ", refreshToken);
-            console.log("accessToken: ", accessToken);
             if (!refreshToken) {
-                return res.status(401).json({
-                    message: "Not authorized, missing refresh token"
-                });
+                throw new TokenError_1.RefreshTokenMissingError();
             }
             if (!accessToken) {
                 const newAccessToken = yield authService.refreshToken(refreshToken);
-                let accessToken = newAccessToken === null || newAccessToken === void 0 ? void 0 : newAccessToken.accessToken;
-                if (!accessToken) {
-                    return res.status(401).json({
-                        message: "Failed to refresh access token, please login again"
-                    });
+                if (!(newAccessToken === null || newAccessToken === void 0 ? void 0 : newAccessToken.accessToken)) {
+                    throw new TokenError_1.AccessTokenRefreshFailedError();
                 }
+                accessToken = newAccessToken.accessToken;
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV !== "development",
-                    maxAge: 15 * 60 * 1000
+                    maxAge: 15 * 60 * 1000,
                 });
             }
             const validationResult = yield authService.validateAccessToken(accessToken);
-            // console.log("validationResult: ", validationResult);
             if (!validationResult) {
-                console.log("Hereee");
-                return res.status(401).json({
-                    message: "Invalid or expired token"
-                });
+                throw new TokenError_1.InvalidOrExpiredTokenError();
             }
             const { userId, role } = validationResult;
             req.userId = userId;
@@ -50,54 +41,18 @@ const AuthMiddleware = (authService) => {
             next();
         }
         catch (error) {
-            return res.status(401).json({
-                message: "Authorization failed"
-            });
+            if (error instanceof TokenError_1.RefreshTokenMissingError) {
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({ message: error.message });
+            }
+            if (error instanceof TokenError_1.AccessTokenRefreshFailedError) {
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({ message: error.message });
+            }
+            if (error instanceof TokenError_1.InvalidOrExpiredTokenError) {
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({ message: error.message });
+            }
+            const genericError = new TokenError_1.AuthorizationFailedError();
+            return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({ message: genericError.message });
         }
     });
 };
 exports.default = AuthMiddleware;
-// import { Request, Response, NextFunction } from "express";
-// import { StudentAuthService } from "../../application/services/StudentAuthService";
-// interface IAuthRequest extends Request {
-//     userId?: string;
-// }
-// const studentAuthMiddleware = (studentAuthService: StudentAuthService) => {    
-//     return async (req: IAuthRequest, res: Response, next: NextFunction) => {
-//         try {
-//             const refreshToken = req.cookies.StudentRefreshToken;
-//             let accessToken = req.cookies.StudentAccessToken;
-//             if (!refreshToken) {
-//                 return res.status(401).json({ 
-//                     message: "Not authorized, missing refresh token" 
-//                 });
-//             }
-//             if (!accessToken) {
-//                 accessToken = await studentAuthService.refreshStudentToken(refreshToken);
-//                 if (!accessToken) {
-//                     return res.status(401).json({ 
-//                         message: "Failed to refresh access token, please login again" 
-//                     });
-//                 }
-//                 res.cookie("studentAccessToken", accessToken, { 
-//                     httpOnly: true, 
-//                     secure: process.env.NODE_ENV === "production", 
-//                     maxAge: 15 * 60 * 1000 
-//                 });
-//             }
-//             const userId = await studentAuthService.validateStudentToken(accessToken);
-//             if (!userId) {
-//                 return res.status(401).json({ 
-//                     message: "Invalid or expired token" 
-//                 });
-//             }
-//             req.userId = userId;
-//             next();
-//         } catch (error) {
-//             return res.status(401).json({ 
-//                 message: "Authorization failed" 
-//             });
-//         }
-//     };
-// };
-// export default studentAuthMiddleware;

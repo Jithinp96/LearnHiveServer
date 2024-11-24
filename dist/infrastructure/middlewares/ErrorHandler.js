@@ -4,9 +4,10 @@ exports.errorHandler = void 0;
 const StudentError_1 = require("../../domain/errors/StudentError");
 const OTPErrors_1 = require("../../domain/errors/OTPErrors");
 const AuthError_1 = require("../../domain/errors/AuthError");
+const TutorError_1 = require("../../domain/errors/TutorError");
 const errorHandler = (err, req, res, next) => {
     if (err instanceof AuthError_1.InvalidCredentialsError) {
-        return res.status(401).json({
+        return res.status(404).json({
             // success: false,
             message: err.message,
             error: 'INVALID_CREDENTIALS'
@@ -48,6 +49,13 @@ const errorHandler = (err, req, res, next) => {
         });
     }
     if (err instanceof StudentError_1.StudentAlreadyExistsError) {
+        return res.status(409).json({
+            success: false,
+            message: err.message,
+            error: 'EMAIL_ID_ALREADY_EXIST'
+        });
+    }
+    if (err instanceof TutorError_1.TutorAlreadyExistsError) {
         return res.status(409).json({
             success: false,
             message: err.message,

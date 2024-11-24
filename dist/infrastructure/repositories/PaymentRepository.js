@@ -9,25 +9,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderUseCase = void 0;
-class OrderUseCase {
-    constructor(_orderRepo) {
-        this._orderRepo = _orderRepo;
-    }
-    getCourseOrders(studentId) {
+exports.PaymentRepository = void 0;
+const CourseOrderModel_1 = require("../database/models/CourseOrderModel");
+const SlotOrderModel_1 = require("../database/models/SlotOrderModel");
+class PaymentRepository {
+    saveOrderDetails(order) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.getCourseOrderByStudentId(studentId);
+            if (order.courseId) {
+                return yield CourseOrderModel_1.CourseOrder.create(order);
+            }
+            else if (order.slotId) {
+                return yield SlotOrderModel_1.SlotOrder.create(order);
+            }
         });
     }
-    getSlotOrders(studentId) {
+    updateOrderStatus(orderId, status) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.getSlotOrderByStudentId(studentId);
+            return yield SlotOrderModel_1.SlotOrder.findByIdAndUpdate(orderId, { status }, { new: true });
         });
     }
-    updateCompletionStatus(studentId, courseId, completionStatus) {
+    getOrderById(orderId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.updateCompletionStatus(studentId, courseId, completionStatus);
+            return yield SlotOrderModel_1.SlotOrder.findById(orderId);
         });
     }
 }
-exports.OrderUseCase = OrderUseCase;
+exports.PaymentRepository = PaymentRepository;

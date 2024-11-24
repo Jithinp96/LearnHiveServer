@@ -18,9 +18,16 @@ const awsS3Config_1 = require("../../infrastructure/config/awsS3Config");
 const CourseCategoryRepository_1 = require("../../infrastructure/repositories/CourseCategoryRepository");
 const CourseCategory_1 = require("../../application/useCases/admin/CourseCategory");
 const HttpStatusEnum_1 = require("../../shared/enums/HttpStatusEnum");
+const InitializeCourseProgressUseCase_1 = require("../../application/useCases/course/InitializeCourseProgressUseCase");
+const ProgressRepository_1 = require("../../infrastructure/repositories/ProgressRepository");
+const UpdateCourseProgressUseCase_1 = require("../../application/useCases/course/UpdateCourseProgressUseCase");
+const OrderRepository_1 = require("../../infrastructure/repositories/OrderRepository");
+const ErrorMessagesEnum_1 = require("../../shared/enums/ErrorMessagesEnum");
 const courseCategoryRepository = new CourseCategoryRepository_1.CourseCategoryRepository();
 const courseCategoryUseCases = new CourseCategory_1.CourseCategoryUseCases(courseCategoryRepository);
 const courseRepository = new CourseRepository_1.CourseRepository();
+const progressRepository = new ProgressRepository_1.ProgressRepository();
+const orderRepository = new OrderRepository_1.OrderRepository;
 class CourseController {
     constructor() {
         this.getAllCategories = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -53,9 +60,7 @@ class CourseController {
             }
         });
         this.approveCourse = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Inside course approval controller");
             const { courseId } = req.params;
-            console.log("courseId: ", courseId);
             try {
                 yield this._courseUseCase.approveCourse(courseId);
                 res.status(200).json({ message: 'Course approved successfully' });
@@ -66,11 +71,8 @@ class CourseController {
             }
         });
         this.toggleCourseStatus = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Inside togle block");
             const { courseId } = req.params;
             const { isBlocked } = req.body;
-            console.log("courseId: ", courseId);
-            console.log("isBlocked: ", isBlocked);
             try {
                 yield this._courseUseCase.toggleCourseStatus(courseId, isBlocked);
             }
@@ -141,14 +143,6 @@ class CourseController {
                 res.status(500).json({ message: "Failed to fetch tutor's courses", details: error });
             }
         });
-        // public fetchAllCourses = async(req: Request, res: Response) => {
-        //     try {
-        //         const courses = await this._courseUseCase.fetchAllCourse();
-        //         res.status(200).json(courses);
-        //     } catch (error) {
-        //         res.status(500).json({ error: 'Failed to fetch courses' });
-        //     }
-        // }
         this.fetchAllCourses = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { search, categories, levels } = req.query;
@@ -190,18 +184,52 @@ class CourseController {
         });
         this.fetchCourseDetails = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("Inside fetch course Details");
                 const { courseId } = req.params;
                 const course = yield this._courseUseCase.fetchCourseDetails(courseId);
-                console.log("course: ", course);
                 res.status(200).json(course);
             }
             catch (error) {
                 res.status(500).json({ error: 'Failed to fetch course details' });
             }
         });
+        this.fetchCourseView = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { courseId } = req.params;
+                const studentId = req.userId;
+                if (!studentId) {
+                    return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({
+                        success: false,
+                        message: ErrorMessagesEnum_1.AuthErrorEnum.INVALID_ID
+                    });
+                }
+                const course = yield this._courseUseCase.fetchCourseViewer(courseId, studentId);
+                res.status(200).json(course);
+            }
+            catch (error) {
+                res.status(500).json({ error: 'Failed to fetch course details' });
+            }
+        });
+        this.updateCourseProgress = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const studentId = req.userId;
+                const { courseId, videoId } = req.body;
+                if (!studentId || !courseId || !videoId) {
+                    return res.status(400).json({
+                        message: "StudentId, courseId, and videoId are required to update progress.",
+                    });
+                }
+                yield this._updateCourseProgressUseCase.execute({ studentId, courseId, videoId });
+                res.status(200).json({ message: "Progress updated successfully." });
+            }
+            catch (error) {
+                console.error("Error updating course progress:", error);
+                res.status(500).json({ message: "Failed to update progress.", error: error });
+            }
+        });
         const videoUploadService = new S3VideoUploadService_1.S3VideoUploadService;
         this._courseUseCase = new CourseUseCase_1.CourseUseCase(courseRepository, videoUploadService);
+        this._initializeCourseProgressUseCase = new InitializeCourseProgressUseCase_1.InitializeCourseProgressUseCase(progressRepository);
+        this._updateCourseProgressUseCase = new UpdateCourseProgressUseCase_1.UpdateCourseProgressUseCase(progressRepository, orderRepository);
     }
 }
 exports.CourseController = CourseController;

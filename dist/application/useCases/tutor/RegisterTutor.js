@@ -14,20 +14,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegisterTutor = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const IDService_1 = require("../../../shared/utils/IDService");
 const OTPService_1 = require("../../../shared/utils/OTPService");
 const OTPModel_1 = require("../../../infrastructure/database/models/OTPModel");
-const EmailServiceTutor_1 = require("../../../infrastructure/services/EmailServiceTutor");
-const IDService_1 = require("../../../shared/utils/IDService");
+const TutorError_1 = require("../../../domain/errors/TutorError");
 class RegisterTutor {
-    constructor(_tutorRepo) {
+    constructor(_tutorRepo, _emailService) {
         this._tutorRepo = _tutorRepo;
+        this._emailService = _emailService;
     }
     execute(data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existingTutor = yield this._tutorRepo.findTutorByEmail(data.email);
                 if (existingTutor) {
-                    throw new Error("Tutor with this email already exists");
+                    throw new TutorError_1.TutorAlreadyExistsError();
                 }
                 const id = `tutor-${(0, IDService_1.generateUniqueId)()}`;
                 const hashedPassword = yield bcryptjs_1.default.hash(data.password, 10);
@@ -46,14 +47,17 @@ class RegisterTutor {
                     subjects: [],
                     workExperience: []
                 };
-                const createdTutor = yield this._tutorRepo.createTutor(newTutor);
+                yield this._tutorRepo.createTutor(newTutor);
                 const expiredAt = new Date(Date.now() + 60000);
                 yield OTPModel_1.OTPModel.create({ email: data.email, otp, expiredAt });
-                yield (0, EmailServiceTutor_1.sendOTPEmail)(data.email, otp);
+                // await sendOTPEmail(data.email, otp);
+                // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
             }
             catch (error) {
-                console.error("Error in RegisterTutor:", error);
-                throw new Error("Tutor registration failed" + error);
+                if (error instanceof TutorError_1.TutorAlreadyExistsError) {
+                    throw error;
+                }
+                throw new TutorError_1.RegistrationError();
             }
         });
     }

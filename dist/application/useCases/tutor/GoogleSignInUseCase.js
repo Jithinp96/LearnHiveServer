@@ -8,48 +8,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoginTutorUseCase = void 0;
+exports.GoogleSignInUseCase = void 0;
 const AuthError_1 = require("../../../domain/errors/AuthError");
 const UserRoleEnum_1 = require("../../../shared/enums/UserRoleEnum");
+const IDService_1 = require("../../../shared/utils/IDService");
 const JWTService_1 = require("../../../shared/utils/JWTService");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
-class LoginTutorUseCase {
-    constructor(tutorRepo, jwtService) {
-        this._tutorRepo = tutorRepo;
-        this._jwtService = jwtService;
+class GoogleSignInUseCase {
+    constructor(_tutorRepo) {
+        this._tutorRepo = _tutorRepo;
     }
-    execute(email, password) {
+    execute(email, name, sub) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
-                const tutor = yield this._tutorRepo.findTutorByEmail(email);
+                let tutor = yield this._tutorRepo.findTutorByEmail(email);
                 if (!tutor) {
-                    throw new AuthError_1.InvalidCredentialsError();
+                    const id = `tutor-${(0, IDService_1.generateUniqueId)()}`;
+                    const newTutor = {
+                        tutorId: id,
+                        name: name,
+                        email: email,
+                        mobile: 0,
+                        password: '',
+                        isVerified: true,
+                        isBlocked: false,
+                        role: "Tutor",
+                        education: [],
+                        subjects: [],
+                        workExperience: []
+                    };
+                    tutor = yield this._tutorRepo.createTutor(newTutor);
                 }
-                if (tutor.isBlocked) {
+                if (tutor === null || tutor === void 0 ? void 0 : tutor.isBlocked) {
                     throw new AuthError_1.AccountBlockedError();
                 }
-                if (!tutor.isVerified) {
-                    throw new AuthError_1.AccountNotVerifiedError();
-                }
-                const isMatch = yield bcryptjs_1.default.compare(password, tutor.password);
-                if (!isMatch) {
-                    throw new AuthError_1.InvalidCredentialsError();
-                }
-                const payload = { _id: tutor._id, email: tutor.email, role: UserRoleEnum_1.UserRole.TUTOR };
+                const tutorId = (_a = tutor === null || tutor === void 0 ? void 0 : tutor._id) === null || _a === void 0 ? void 0 : _a.toString();
+                const payload = { _id: tutorId, email: tutor === null || tutor === void 0 ? void 0 : tutor.email, role: UserRoleEnum_1.UserRole.TUTOR };
                 const accessToken = JWTService_1.JWTService.generateAccessToken(payload);
                 const refreshToken = JWTService_1.JWTService.generateRefreshToken({ payload });
-                // const accessToken = JWTService.generateAccessToken( tutor );
-                // const refreshToken = JWTService.generateRefreshToken({ tutor });
                 return { accessToken, refreshToken, tutor };
             }
             catch (error) {
-                if (error instanceof AuthError_1.InvalidCredentialsError ||
-                    error instanceof AuthError_1.AccountBlockedError ||
-                    error instanceof AuthError_1.AccountNotVerifiedError) {
+                if (error instanceof AuthError_1.AccountBlockedError) {
                     throw error;
                 }
                 throw new AuthError_1.LoginFailed();
@@ -57,4 +58,4 @@ class LoginTutorUseCase {
         });
     }
 }
-exports.LoginTutorUseCase = LoginTutorUseCase;
+exports.GoogleSignInUseCase = GoogleSignInUseCase;

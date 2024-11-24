@@ -53,11 +53,14 @@ studentRoutes.post('/slot-cancel/:slotOrderId', (0, AuthMiddleware_1.default)(au
 studentRoutes.get('/getcategories', courseController.getAllCategories);
 studentRoutes.get('/allcourses', courseController.fetchAllCourses);
 studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
+studentRoutes.get('/course-view/:courseId', (0, AuthMiddleware_1.default)(authService), courseController.fetchCourseView);
+// studentRoutes.post('/initialize-course-progress', courseController.initializeCourseProgress);
+studentRoutes.put('/course-progress', (0, AuthMiddleware_1.default)(authService), courseController.updateCourseProgress);
 studentRoutes.get('/course-orders/', (0, AuthMiddleware_1.default)(authService), orderController.getCourseOrdersByStudent);
 studentRoutes.get('/slot-orders/', (0, AuthMiddleware_1.default)(authService), orderController.getSlotOrdersByStudent);
-studentRoutes.post('/add-to-cart', (0, AuthMiddleware_1.default)(authService), cartController.addCourseToCart);
-studentRoutes.get('/cart', (0, AuthMiddleware_1.default)(authService), cartController.fetchCart);
-studentRoutes.delete('/cart/delete/:courseId', (0, AuthMiddleware_1.default)(authService), cartController.deleteFromCart);
+// studentRoutes.post('/add-to-cart', AuthMiddleware(authService), cartController.addCourseToCart);
+// studentRoutes.get('/cart', AuthMiddleware(authService), cartController.fetchCart)
+// studentRoutes.delete('/cart/delete/:courseId', AuthMiddleware(authService), cartController.deleteFromCart)
 studentRoutes.post('/create-checkout-session', (0, AuthMiddleware_1.default)(authService), cartController.payment);
 studentRoutes.post('/:courseId/reviews', (0, AuthMiddleware_1.default)(authService), reviewController.addReview);
 // studentRoutes.put('/:courseId/reviews/:reviewId', AuthMiddleware(authService), reviewController.updateReview)

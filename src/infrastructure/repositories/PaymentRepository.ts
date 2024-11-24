@@ -3,7 +3,7 @@ import { CourseOrder } from '../database/models/CourseOrderModel';
 import { SlotOrder } from '../database/models/SlotOrderModel';
 
 export class PaymentRepository implements IPaymentRepository {
-    public async saveOrderDetails(order: any): Promise<any> {
+    async saveOrderDetails(order: any): Promise<any> {
         if (order.courseId) {
             return await CourseOrder.create(order);
         } else if (order.slotId) {
@@ -11,11 +11,11 @@ export class PaymentRepository implements IPaymentRepository {
         }
     }
 
-    public async updateOrderStatus(orderId: string, status: string): Promise<any> {
+    async updateOrderStatus(orderId: string, status: string): Promise<any> {
         return await SlotOrder.findByIdAndUpdate(orderId, { status }, { new: true });
     }
 
-    public async getOrderById(orderId: string): Promise<any> {
+    async getOrderById(orderId: string): Promise<any> {
         return await SlotOrder.findById(orderId);
     }
 }

@@ -7,7 +7,6 @@ exports.JWTService = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 class JWTService {
     static generateAccessToken(payload) {
-        // console.log("payload from generate access token: ", payload);
         try {
             const token = jsonwebtoken_1.default.sign(payload, process.env.JWT_ACCESS_SECRET, {
                 expiresIn: process.env.JWT_ACCESS_EXPIRATION,
@@ -38,32 +37,32 @@ class JWTService {
     static verifyForgotToken(token) {
         return jsonwebtoken_1.default.verify(token, process.env.JWT_FORGOT_PASSWORD_SECRET);
     }
-    static setTokens(res, accessToken, refreshToken) {
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== "development",
-            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Important for cross-origin
-            maxAge: 15 * 60 * 1000, // 15 minutes
-        });
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== "development",
-            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-    }
     // static setTokens(res: Response, accessToken: string, refreshToken: string): void {
     //     res.cookie('accessToken', accessToken, {
     //         httpOnly: true,
     //         secure: process.env.NODE_ENV !== "development",
-    //         maxAge: 15 * 60 * 1000,
+    //         sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+    //         maxAge: 15 * 60 * 1000, // 15 minutes
     //     });
     //     res.cookie('refreshToken', refreshToken, {
     //         httpOnly: true,
     //         secure: process.env.NODE_ENV !== "development",
-    //         maxAge: 7 * 24 * 60 * 60 * 1000,
+    //         sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+    //         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     //     });
     // }
+    static setTokens(res, accessToken, refreshToken) {
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== "development",
+            maxAge: 15 * 60 * 1000,
+        });
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== "development",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+    }
     static clearTokens(res) {
         res.clearCookie('accessToken');
         res.clearCookie('refreshToken');

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProfileErrorEnum = exports.TutorErrorEnum = exports.StudentErrorEnum = exports.AuthErrorEnum = exports.DatabaseErrorEnum = void 0;
+exports.CourseProgressErrorEnum = exports.TokenErrorEnum = exports.ProfileErrorEnum = exports.TutorErrorEnum = exports.StudentErrorEnum = exports.AuthErrorEnum = exports.DatabaseErrorEnum = void 0;
 var DatabaseErrorEnum;
 (function (DatabaseErrorEnum) {
     //Database Errors
@@ -41,3 +41,17 @@ var ProfileErrorEnum;
     ProfileErrorEnum["EDU_ADD_FAILED"] = "Failed to add education details. Please try again!";
     ProfileErrorEnum["EDU_DELETE_FAILED"] = "Failed to edit education details. Please try again!";
 })(ProfileErrorEnum || (exports.ProfileErrorEnum = ProfileErrorEnum = {}));
+var TokenErrorEnum;
+(function (TokenErrorEnum) {
+    TokenErrorEnum["REFRESH_TOKEN_MISSING"] = "You are not logged in. Please log in to continue!";
+    TokenErrorEnum["ACCESS_TOKEN_REFRESH_FAILED"] = "Your session has expired. Please log in again!";
+    TokenErrorEnum["INVALID_OR_EXPIRED_TOKEN"] = "Your session is no longer valid. Please log in again!";
+    TokenErrorEnum["AUTHORIZATION_FAILED"] = "You do not have permission to perform this action.";
+    TokenErrorEnum["UNAUTHORIZED"] = "You must be logged in to access this resource.";
+})(TokenErrorEnum || (exports.TokenErrorEnum = TokenErrorEnum = {}));
+var CourseProgressErrorEnum;
+(function (CourseProgressErrorEnum) {
+    CourseProgressErrorEnum["PROGRESS_NOT_FOUND"] = "Progress record not found.";
+    CourseProgressErrorEnum["INVALID_VIDEO_ID"] = "The specified video ID is invalid.";
+    CourseProgressErrorEnum["DATABASE_ERROR"] = "An error occurred while accessing the database.";
+})(CourseProgressErrorEnum || (exports.CourseProgressErrorEnum = CourseProgressErrorEnum = {}));

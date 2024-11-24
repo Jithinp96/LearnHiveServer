@@ -32,21 +32,29 @@ const MultipleSlotSchedulerRepository_1 = require("../../infrastructure/reposito
 const GenerateMultipleSlotUseCase_1 = require("../../application/useCases/tutor/GenerateMultipleSlotUseCase");
 const GetTutorDashboardUseCase_1 = require("../../application/useCases/tutor/GetTutorDashboardUseCase");
 const TutorDashboardRepository_1 = require("../../infrastructure/repositories/TutorDashboardRepository");
+const jwt_decode_1 = require("jwt-decode");
+const SuccessMessageEnum_1 = require("../../shared/enums/SuccessMessageEnum");
+const GoogleSignInUseCase_1 = require("../../application/useCases/tutor/GoogleSignInUseCase");
+const EmailService_1 = require("../../infrastructure/services/EmailService");
 class TutorController {
     constructor() {
         //REGISTER TUTOR
-        this.register = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.register = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            const { name, email, mobile, password } = req.body;
             try {
-                const { name, email, mobile, password } = req.body;
                 yield this._registerTutor.execute({ name, email, mobile, password });
                 res.cookie("OTPEmail", email, {
                     httpOnly: true,
                     maxAge: 24 * 60 * 60 * 1000,
+                    secure: process.env.NODE_ENV !== "development"
                 });
-                res.status(HttpStatusEnum_1.HttpStatusEnum.CREATED).json({ message: "Registration successful. OTP sent to email." });
+                res.status(HttpStatusEnum_1.HttpStatusEnum.CREATED).json({
+                    success: true,
+                    message: SuccessMessageEnum_1.SuccessMessageEnum.REGISTRATION_SUCCESS
+                });
             }
             catch (error) {
-                res.status(HttpStatusEnum_1.HttpStatusEnum.BAD_REQUEST).json({ error });
+                next(error);
             }
         });
         this.resendOTP = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -103,7 +111,7 @@ class TutorController {
                 });
             }
         });
-        this.login = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.login = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const { email, password } = req.body;
             try {
                 const { accessToken, refreshToken, tutor } = yield this._loginTutorUseCase.execute(email, password);
@@ -114,8 +122,24 @@ class TutorController {
                 });
             }
             catch (error) {
-                console.error("Login error:", error);
-                res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({ error });
+                next(error);
+            }
+        });
+        this.googleLogin = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            const { credentials } = req.body;
+            const decoded = (0, jwt_decode_1.jwtDecode)(credentials);
+            const { name, email, sub } = decoded;
+            try {
+                const { accessToken, refreshToken, tutor } = yield this._googleSignInUseCase.execute(email, name, sub);
+                JWTService_1.JWTService.setTokens(res, accessToken, refreshToken);
+                res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
+                    success: true,
+                    message: SuccessMessageEnum_1.SuccessMessageEnum.LOGIN_SUCCESS,
+                    tutor
+                });
+            }
+            catch (error) {
+                next(error);
             }
         });
         this.forgotPassword = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -406,10 +430,12 @@ class TutorController {
         this._tutorSlotRepo = new TutorSlotRepository_1.TutorSlotRepository();
         this._tutorSlotPreferenceRepository = new TutorSlotPreferenceRepository_1.TutorSlotPreferenceRepository();
         this._tutorDashboardRepo = new TutorDashboardRepository_1.TutorDashboardRepository();
-        this._registerTutor = new RegisterTutor_1.RegisterTutor(this._tutorRepo);
-        this._verifyOTPUseCase = new VerifyOTP_1.VerifyOTPTutor(this._tutorRepo);
         this._jwtService = new JWTService_1.JWTService();
+        this._emailService = new EmailService_1.EmailService();
+        this._registerTutor = new RegisterTutor_1.RegisterTutor(this._tutorRepo, this._emailService);
+        this._verifyOTPUseCase = new VerifyOTP_1.VerifyOTPTutor(this._tutorRepo);
         this._loginTutorUseCase = new TutorLogin_1.LoginTutorUseCase(this._tutorRepo, this._jwtService);
+        this._googleSignInUseCase = new GoogleSignInUseCase_1.GoogleSignInUseCase(this._tutorRepo);
         this._forgotPasswordUseCase = new ForgotPassword_1.ForgotPassword(this._tutorRepo);
         this._resetPasswordUseCase = new ResetPassword_1.ResetPassword(this._tutorRepo);
         this._tutorUseCase = new TutorUseCase_1.TutorUseCase(this._tutorRepo, this._tutorSlotRepo);

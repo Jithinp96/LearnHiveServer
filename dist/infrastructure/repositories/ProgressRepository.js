@@ -9,25 +9,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderUseCase = void 0;
-class OrderUseCase {
-    constructor(_orderRepo) {
-        this._orderRepo = _orderRepo;
-    }
-    getCourseOrders(studentId) {
+exports.ProgressRepository = void 0;
+const CourseProgressSchema_1 = require("../database/models/CourseProgressSchema");
+class ProgressRepository {
+    findByStudentAndCourse(studentId, courseId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.getCourseOrderByStudentId(studentId);
+            return yield CourseProgressSchema_1.CourseProgress.findOne({ studentId, courseId });
         });
     }
-    getSlotOrders(studentId) {
+    create(progress) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.getSlotOrderByStudentId(studentId);
+            const newProgress = new CourseProgressSchema_1.CourseProgress(progress);
+            yield newProgress.save();
         });
     }
-    updateCompletionStatus(studentId, courseId, completionStatus) {
+    update(progress) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.updateCompletionStatus(studentId, courseId, completionStatus);
+            yield CourseProgressSchema_1.CourseProgress.findByIdAndUpdate(progress._id, progress, { new: true });
         });
     }
 }
-exports.OrderUseCase = OrderUseCase;
+exports.ProgressRepository = ProgressRepository;

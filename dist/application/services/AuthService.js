@@ -24,7 +24,6 @@ class AuthService {
     validateAccessToken(token) {
         return __awaiter(this, void 0, void 0, function* () {
             const decoded = JWTService_1.JWTService.verifyAccessToken(token);
-            // console.log("decoded inside validate access token: ", decoded);
             if (!decoded)
                 return null;
             switch (decoded.role) {

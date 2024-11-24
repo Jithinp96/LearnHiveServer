@@ -125,7 +125,6 @@ class StudentController {
                 });
             }
             catch (error) {
-                console.log("Catch of google signin controller: ", error);
                 next(error);
             }
         });

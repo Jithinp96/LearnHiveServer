@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TutorRepository = void 0;
+const DatabaseError_1 = require("../../domain/errors/DatabaseError");
+const TutorError_1 = require("../../domain/errors/TutorError");
 const TutorModel_1 = require("../database/models/TutorModel");
 class TutorRepository {
     createTutor(tutor) {
@@ -20,8 +22,7 @@ class TutorRepository {
                 return newTutor.toObject();
             }
             catch (error) {
-                console.error('Error creating tutor:', error);
-                throw new Error('Failed to create tutor');
+                throw new DatabaseError_1.DatabaseError();
             }
         });
     }
@@ -32,8 +33,7 @@ class TutorRepository {
                 return tutor;
             }
             catch (error) {
-                console.error('Error finding tutor by email:', error);
-                throw new Error('Failed to find tutor by email');
+                throw new TutorError_1.TutorNotFoundError();
             }
         });
     }
@@ -44,8 +44,7 @@ class TutorRepository {
                 return tutor;
             }
             catch (error) {
-                console.error('Error updating tutor:', error);
-                throw new Error('Failed to update tutor');
+                throw new TutorError_1.TutorUpdateError();
             }
         });
     }
@@ -56,8 +55,7 @@ class TutorRepository {
                 return tutors;
             }
             catch (error) {
-                console.error('Error fetching all tutors:', error);
-                throw new Error('Failed to retrieve tutors');
+                throw new DatabaseError_1.DatabaseError();
             }
         });
     }
@@ -68,8 +66,7 @@ class TutorRepository {
                 return tutor;
             }
             catch (error) {
-                console.error('Error finding tutor by ID:', error);
-                throw new Error('Failed to find tutor by ID');
+                throw new DatabaseError_1.DatabaseError();
             }
         });
     }
@@ -79,8 +76,7 @@ class TutorRepository {
                 yield TutorModel_1.TutorModel.updateOne({ _id: id }, { $set: { password: hashedPassword } });
             }
             catch (error) {
-                console.error('Error updating student password:', error);
-                throw new Error('Failed to update student password');
+                throw new TutorError_1.TutorUpdateError();
             }
         });
     }

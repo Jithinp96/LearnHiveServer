@@ -23,6 +23,8 @@ const TutorUseCase_1 = require("../../application/useCases/tutor/TutorUseCase");
 const RefundSlotOrderUseCase_1 = require("../../application/useCases/student/RefundSlotOrderUseCase");
 const OrderRepository_1 = require("../../infrastructure/repositories/OrderRepository");
 const HttpStatusEnum_1 = require("../../shared/enums/HttpStatusEnum");
+const InitializeCourseProgressUseCase_1 = require("../../application/useCases/course/InitializeCourseProgressUseCase");
+const ProgressRepository_1 = require("../../infrastructure/repositories/ProgressRepository");
 const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-09-30.acacia'
 });
@@ -92,6 +94,7 @@ class PaymentController {
                         type: 'course',
                         courseId: courseDetails._id.toString(),
                         userId: userId.toString(),
+                        totalVideos: courseDetails.videos.length
                     }
                 });
                 res.json({ id: session.id });
@@ -148,7 +151,7 @@ class PaymentController {
             }
         });
         this.handleCoursePayment = (session, status) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
+            var _a, _b, _c, _d, _e;
             const orderDetails = {
                 courseId: (_a = session.metadata) === null || _a === void 0 ? void 0 : _a.courseId,
                 studentId: (_b = session.metadata) === null || _b === void 0 ? void 0 : _b.userId,
@@ -158,8 +161,7 @@ class PaymentController {
                 createdAt: new Date()
             };
             yield CourseOrderModel_1.CourseOrder.create(orderDetails);
-            // if (status === 'Completed') {
-            // }
+            yield this._initializeCourseProgressUseCase.execute({ studentId: (_c = session.metadata) === null || _c === void 0 ? void 0 : _c.userId, courseId: (_d = session.metadata) === null || _d === void 0 ? void 0 : _d.courseId, totalVideos: Number((_e = session.metadata) === null || _e === void 0 ? void 0 : _e.totalVideos) });
         });
         this.handleSlotPayment = (session, status) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
@@ -184,14 +186,10 @@ class PaymentController {
             }
         });
         this.handleRefund = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Reached handleRefund controller");
             try {
                 const studentId = req.userId;
                 const { slotOrderId } = req.params;
-                console.log("studentId: ", studentId);
-                console.log("slotOrderId: ", slotOrderId);
                 const refundedOrder = yield this._refundSlotOrderUseCase.execute(slotOrderId, studentId);
-                console.log("refundedOrder in handle refund controller: ", refundedOrder);
                 res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
                     message: 'Slot order refunded successfully',
                     order: refundedOrder
@@ -205,8 +203,10 @@ class PaymentController {
         this._tutorSlotRepo = new TutorSlotRepository_1.TutorSlotRepository();
         this._tutorRepo = new TutorRepository_1.TutorRepository();
         this._orderRepo = new OrderRepository_1.OrderRepository();
+        this._progressRepo = new ProgressRepository_1.ProgressRepository();
         this._tutorUseCase = new TutorUseCase_1.TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
         this._refundSlotOrderUseCase = new RefundSlotOrderUseCase_1.RefundSlotOrderUseCase(this._orderRepo);
+        this._initializeCourseProgressUseCase = new InitializeCourseProgressUseCase_1.InitializeCourseProgressUseCase(this._progressRepo);
     }
 }
 exports.PaymentController = PaymentController;
