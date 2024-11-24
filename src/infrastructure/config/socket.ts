@@ -5,7 +5,7 @@ import { SocketService } from "../services/SocketService";
 export function initializeSocket(server: HttpServer) {
     const io = new SocketIOServer(server, {
         cors: {
-            origin: "http://localhost:3000",
+            origin: process.env.CORSURL,
             methods: ["GET", "POST"],
             credentials: true
         }

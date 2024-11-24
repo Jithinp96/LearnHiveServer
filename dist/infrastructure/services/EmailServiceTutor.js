@@ -26,7 +26,7 @@ function sendOTPEmail(recipientEmail, otp) {
         const mailOptions = {
             from: process.env.GMAIL_USER,
             to: recipientEmail,
-            subject: 'OTP for Student Registration',
+            subject: 'OTP for Registration',
             text: `Your OTP for registration is ${otp}`,
         };
         yield transporter.sendMail(mailOptions);

@@ -87,10 +87,16 @@ export class StudentController {
         try {
             await this._registerStudentUseCase.execute({ name, email, mobile, password });
             
+            // res.cookie("OTPEmail", email, {
+            //     httpOnly: true,
+            //     maxAge: 24 * 60 * 60 * 1000,
+            //     secure: process.env.NODE_ENV !== "development"
+            // });
             res.cookie("OTPEmail", email, {
                 httpOnly: true,
+                secure: process.env.NODE_ENV !== "development",
+                sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
                 maxAge: 24 * 60 * 60 * 1000,
-                secure: process.env.NODE_ENV !== "development"
             });
 
             res.status(HttpStatusEnum.CREATED).json({

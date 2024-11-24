@@ -17,6 +17,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const IDService_1 = require("../../../shared/utils/IDService");
 const OTPService_1 = require("../../../shared/utils/OTPService");
 const OTPModel_1 = require("../../../infrastructure/database/models/OTPModel");
+const EmailServiceTutor_1 = require("../../../infrastructure/services/EmailServiceTutor");
 const TutorError_1 = require("../../../domain/errors/TutorError");
 class RegisterTutor {
     constructor(_tutorRepo, _emailService) {
@@ -50,7 +51,7 @@ class RegisterTutor {
                 yield this._tutorRepo.createTutor(newTutor);
                 const expiredAt = new Date(Date.now() + 60000);
                 yield OTPModel_1.OTPModel.create({ email: data.email, otp, expiredAt });
-                // await sendOTPEmail(data.email, otp);
+                yield (0, EmailServiceTutor_1.sendOTPEmail)(data.email, otp);
                 // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
             }
             catch (error) {

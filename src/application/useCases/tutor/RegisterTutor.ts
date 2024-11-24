@@ -48,7 +48,7 @@ export class RegisterTutor {
             const expiredAt = new Date(Date.now() + 60000);
             await OTPModel.create({ email: data.email, otp, expiredAt });
 
-            // await sendOTPEmail(data.email, otp);
+            await sendOTPEmail(data.email, otp);
             // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
         } catch (error) {
             if (error instanceof TutorAlreadyExistsError) {

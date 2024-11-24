@@ -8,6 +8,7 @@ import { IStudent } from "../../../domain/entities/user/IStudent";
 import { IEmailService } from "../../../domain/interfaces/IEmailService";
 import { RegistrationError, StudentAlreadyExistsError } from "../../../domain/errors/StudentError";
 import { OTPModel } from "../../../infrastructure/database/models/OTPModel";
+import { sendOTPEmail } from "../../../infrastructure/services/EmailServiceTutor";
 
 export class RegisterStudentUseCase {
     constructor(
@@ -43,7 +44,7 @@ export class RegisterStudentUseCase {
 
             const expiredAt = new Date(Date.now() + 60000);
             await OTPModel.create({ email: data.email, otp, expiredAt });
-
+            await sendOTPEmail(data.email, otp);
             // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
         } catch (error) {
             if (error instanceof StudentAlreadyExistsError) {

@@ -6,7 +6,7 @@ const SocketService_1 = require("../services/SocketService");
 function initializeSocket(server) {
     const io = new socket_io_1.Server(server, {
         cors: {
-            origin: "http://localhost:3000",
+            origin: process.env.CORSURL,
             methods: ["GET", "POST"],
             credentials: true
         }

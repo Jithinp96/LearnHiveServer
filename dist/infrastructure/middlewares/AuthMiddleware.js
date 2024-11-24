@@ -25,9 +25,15 @@ const AuthMiddleware = (authService) => {
                     throw new TokenError_1.AccessTokenRefreshFailedError();
                 }
                 accessToken = newAccessToken.accessToken;
+                // res.cookie("accessToken", accessToken, {
+                //     httpOnly: true,
+                //     secure: process.env.NODE_ENV !== "development",
+                //     maxAge: 15 * 60 * 1000,
+                // });
                 res.cookie("accessToken", accessToken, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV !== "development",
+                    sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
                     maxAge: 15 * 60 * 1000,
                 });
             }

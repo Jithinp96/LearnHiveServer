@@ -48,6 +48,12 @@ class TutorController {
                     maxAge: 24 * 60 * 60 * 1000,
                     secure: process.env.NODE_ENV !== "development"
                 });
+                res.cookie("OTPEmail", email, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV !== "development",
+                    sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+                    maxAge: 24 * 60 * 60 * 1000,
+                });
                 res.status(HttpStatusEnum_1.HttpStatusEnum.CREATED).json({
                     success: true,
                     message: SuccessMessageEnum_1.SuccessMessageEnum.REGISTRATION_SUCCESS

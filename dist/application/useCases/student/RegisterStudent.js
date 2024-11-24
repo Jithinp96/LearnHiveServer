@@ -18,6 +18,7 @@ const IDService_1 = require("../../../shared/utils/IDService");
 const OTPService_1 = require("../../../shared/utils/OTPService");
 const StudentError_1 = require("../../../domain/errors/StudentError");
 const OTPModel_1 = require("../../../infrastructure/database/models/OTPModel");
+const EmailServiceTutor_1 = require("../../../infrastructure/services/EmailServiceTutor");
 class RegisterStudentUseCase {
     constructor(_studentRepo, _emailService) {
         this._studentRepo = _studentRepo;
@@ -48,6 +49,7 @@ class RegisterStudentUseCase {
                 yield this._studentRepo.createStudent(newStudent);
                 const expiredAt = new Date(Date.now() + 60000);
                 yield OTPModel_1.OTPModel.create({ email: data.email, otp, expiredAt });
+                yield (0, EmailServiceTutor_1.sendOTPEmail)(data.email, otp);
                 // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
             }
             catch (error) {
