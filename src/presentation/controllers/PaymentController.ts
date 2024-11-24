@@ -126,7 +126,7 @@ export class PaymentController {
 
   public handlePaymentWebhook = async(req: Request, res: Response) => {
     try {
-      const endpointSecret = 'whsec_4574e983c6f66c38c2f99a2beca0ab24610ecd286a024fc41c208527dd66dca7';
+      const endpointSecret = 'whsec_8CpDJISR10sTcrrv0okjDDLfxSmEZODU';
       const sig = req.headers['stripe-signature'];
 
       if (!sig || !endpointSecret) {

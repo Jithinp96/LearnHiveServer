@@ -107,7 +107,7 @@ class PaymentController {
         this.handlePaymentWebhook = (req, res) => __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
             try {
-                const endpointSecret = 'whsec_4574e983c6f66c38c2f99a2beca0ab24610ecd286a024fc41c208527dd66dca7';
+                const endpointSecret = 'whsec_8CpDJISR10sTcrrv0okjDDLfxSmEZODU';
                 const sig = req.headers['stripe-signature'];
                 if (!sig || !endpointSecret) {
                     return res.status(400).json({ error: 'Missing signature or endpoint secret' });
