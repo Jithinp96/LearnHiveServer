@@ -3,8 +3,6 @@ import { Request, Response } from 'express';
 
 export class JWTService {
     static generateAccessToken(payload: object): string {
-        // console.log("payload from generate access token: ", payload);
-        
         try {
             const token = jwt.sign(payload, process.env.JWT_ACCESS_SECRET as string, {
                 expiresIn: process.env.JWT_ACCESS_EXPIRATION,
@@ -41,35 +39,35 @@ export class JWTService {
         return jwt.verify(token, process.env.JWT_FORGOT_PASSWORD_SECRET as string);
     }
 
-    static setTokens(res: Response, accessToken: string, refreshToken: string): void {
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== "development",
-            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax', // Important for cross-origin
-            maxAge: 15 * 60 * 1000, // 15 minutes
-        });
-    
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== "development",
-            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-    }
-    
     // static setTokens(res: Response, accessToken: string, refreshToken: string): void {
     //     res.cookie('accessToken', accessToken, {
     //         httpOnly: true,
     //         secure: process.env.NODE_ENV !== "development",
-    //         maxAge: 15 * 60 * 1000,
+    //         sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+    //         maxAge: 15 * 60 * 1000, // 15 minutes
     //     });
-
+    
     //     res.cookie('refreshToken', refreshToken, {
     //         httpOnly: true,
     //         secure: process.env.NODE_ENV !== "development",
-    //         maxAge: 7 * 24 * 60 * 60 * 1000,
+    //         sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax',
+    //         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     //     });
     // }
+
+    static setTokens(res: Response, accessToken: string, refreshToken: string): void {
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== "development",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== "development",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+    }
 
     static clearTokens(res: Response): void {
         res.clearCookie('accessToken');

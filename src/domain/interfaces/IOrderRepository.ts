@@ -6,4 +6,5 @@ export interface IOrderRepository {
   getSlotOrderByStudentId(studentId: string): Promise<ISlotOrder[]>;
   getSlotOrderById(slotOrderId: string): Promise<ISlotOrder>;
   updateSlotOrder(slotOrder: ISlotOrder): Promise<ISlotOrder>;
+  updateCompletionStatus(studentId: string, courseId: string, status: string): Promise<void>;
 }

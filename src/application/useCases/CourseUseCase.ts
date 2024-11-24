@@ -28,15 +28,6 @@ export class CourseUseCase {
         return video;
     }
 
-    // async fetchAllCourse(): Promise<ICourse[]> {
-    //     try {
-    //         return this._courseRepository.findAllCourse();
-    //     } catch (error) {
-    //         console.error('Error fetching courses:', error);
-    //         throw new Error('Failed to fetch courses');
-    //     }
-    // }
-
     async fetchAllCourse(filters: any): Promise<ICourse[]> {
         try {
             return this._courseRepository.findAllCourse(filters);

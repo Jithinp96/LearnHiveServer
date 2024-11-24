@@ -1,3 +1,4 @@
+import { AccountBlockedError, AccountNotVerifiedError, InvalidCredentialsError, LoginFailed } from "../../../domain/errors/AuthError";
 import { ITutorRepository } from "../../../domain/interfaces/ITutorRepository";
 import { UserRole } from "../../../shared/enums/UserRoleEnum";
 import { JWTService } from "../../../shared/utils/JWTService";
@@ -17,20 +18,20 @@ export class LoginTutorUseCase {
             const tutor = await this._tutorRepo.findTutorByEmail(email);
             
             if (!tutor) {
-                throw new Error("Invalid email or password");
+                throw new InvalidCredentialsError();
             }
 
             if (tutor.isBlocked) {
-                throw new Error("Your account is blocked");
+                throw new AccountBlockedError();
             }
 
             if (!tutor.isVerified) {
-                throw new Error("Your account is not verified");
+                throw new AccountNotVerifiedError();
             }
 
             const isMatch = await bcrypt.compare(password, tutor.password);
             if (!isMatch) {
-                throw new Error("Invalid email or password");
+                throw new InvalidCredentialsError();
             }
 
             const payload = { _id: tutor._id, email: tutor.email, role: UserRole.TUTOR };
@@ -43,8 +44,12 @@ export class LoginTutorUseCase {
 
             return { accessToken, refreshToken, tutor };
         } catch (error) {
-            console.error("Tutor Login error:", error);
-            throw new Error("Tutor Login Failed");
+            if (error instanceof InvalidCredentialsError ||
+                error instanceof AccountBlockedError ||
+                error instanceof AccountNotVerifiedError) {
+              throw error;
+            }
+            throw new LoginFailed();
         }
     }
 }

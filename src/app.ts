@@ -33,7 +33,8 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-  origin: 'https://learnhive.vercel.app',
+  origin: `${process.env.CORSURL}`,
+  // origin: 'https://learnhive.vercel.app',
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   credentials: true,
 };

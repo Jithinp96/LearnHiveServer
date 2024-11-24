@@ -17,25 +17,12 @@ export class CourseRepository implements ICourseRepository {
         
         try {
             const course = await CourseModel.find({ tutorId }).populate('category', 'name');
-            console.log(course);
-            
             return course
         } catch (error) {
             console.error('Error fetching courses for tutor:', error);
             throw new Error('Failed to fetch courses');
         }
     }
-
-    // async findAllCourse(): Promise<ICourse[]> {
-    //     try {
-    //         const course = await CourseModel.find({ isApproved: false, isBlocked: false })
-    //         .populate('category', 'name');
-    //         return course
-    //     } catch (error) {
-    //         console.error('Error fetching courses:', error);
-    //         throw new Error('Failed to fetch courses');
-    //     }
-    // }
 
     async findAllCourse(filters: any): Promise<ICourse[]> {
         try {
@@ -62,7 +49,7 @@ export class CourseRepository implements ICourseRepository {
     async findCourseById(courseId: string): Promise<ICourse | null> {
         try {
             const course = await CourseModel.findById(courseId)
-                .populate('tutorId', 'name')
+                .populate('tutorId', 'name profileImage')
                 .populate('category', 'name')
                 .populate('reviews.userId', 'name profileImage')
                 .populate('comments.userId', 'name profileImage')

@@ -36,5 +36,18 @@ export enum ProfileErrorEnum {
     EDU_UPDATE_FAILED = "Failed to edit education details. Please try again!",
     EDU_ADD_FAILED = "Failed to add education details. Please try again!",
     EDU_DELETE_FAILED = "Failed to edit education details. Please try again!",
-    
+}
+
+export enum TokenErrorEnum {
+    REFRESH_TOKEN_MISSING = "You are not logged in. Please log in to continue!",
+    ACCESS_TOKEN_REFRESH_FAILED = "Your session has expired. Please log in again!",
+    INVALID_OR_EXPIRED_TOKEN = "Your session is no longer valid. Please log in again!",
+    AUTHORIZATION_FAILED = "You do not have permission to perform this action.",
+    UNAUTHORIZED = "You must be logged in to access this resource.",
+}
+
+export enum CourseProgressErrorEnum {
+    PROGRESS_NOT_FOUND = "Progress record not found.",
+    INVALID_VIDEO_ID = "The specified video ID is invalid.",
+    DATABASE_ERROR = "An error occurred while accessing the database."
 }

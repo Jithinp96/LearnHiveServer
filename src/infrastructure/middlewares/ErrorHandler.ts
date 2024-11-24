@@ -2,10 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import { StudentAlreadyExistsError, StudentNotFoundError } from '../../domain/errors/StudentError';
 import { OTPExpiredError, InvalidOTPError } from '../../domain/errors/OTPErrors';
 import { AccountBlockedError, AccountNotVerifiedError, InvalidCredentialsError } from '../../domain/errors/AuthError';
+import { TutorAlreadyExistsError } from '../../domain/errors/TutorError';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof InvalidCredentialsError) {
-        return res.status(401).json({
+        return res.status(404).json({
             // success: false,
             message: err.message,
             error: 'INVALID_CREDENTIALS'
@@ -53,6 +54,14 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     }
 
     if (err instanceof StudentAlreadyExistsError) {
+        return res.status(409).json({
+            success: false,
+            message: err.message,
+            error: 'EMAIL_ID_ALREADY_EXIST'
+        });
+    }
+
+    if (err instanceof TutorAlreadyExistsError) {
         return res.status(409).json({
             success: false,
             message: err.message,

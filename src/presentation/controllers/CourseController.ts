@@ -7,17 +7,31 @@ import { s3 } from '../../infrastructure/config/awsS3Config';
 import { CourseCategoryRepository } from '../../infrastructure/repositories/CourseCategoryRepository';
 import { CourseCategoryUseCases } from '../../application/useCases/admin/CourseCategory';
 import { HttpStatusEnum } from '../../shared/enums/HttpStatusEnum';
+import { InitializeCourseProgressUseCase } from '../../application/useCases/course/InitializeCourseProgressUseCase';
+import { ProgressRepository } from '../../infrastructure/repositories/ProgressRepository';
+import { UpdateCourseProgressUseCase } from '../../application/useCases/course/UpdateCourseProgressUseCase';
+import { OrderRepository } from '../../infrastructure/repositories/OrderRepository';
 
 const courseCategoryRepository = new CourseCategoryRepository();
 const courseCategoryUseCases = new CourseCategoryUseCases(courseCategoryRepository);
 const courseRepository = new CourseRepository();
+const progressRepository = new ProgressRepository();
+const orderRepository = new OrderRepository
+
+interface AuthenticatedRequest extends Request {
+    userId?: string;
+}
 
 export class CourseController {
     private _courseUseCase: CourseUseCase;
+    private _initializeCourseProgressUseCase: InitializeCourseProgressUseCase;
+    private _updateCourseProgressUseCase: UpdateCourseProgressUseCase;
 
     constructor() {
         const videoUploadService = new S3VideoUploadService
         this._courseUseCase = new CourseUseCase(courseRepository, videoUploadService);
+        this._initializeCourseProgressUseCase = new InitializeCourseProgressUseCase(progressRepository);
+        this._updateCourseProgressUseCase = new UpdateCourseProgressUseCase(progressRepository, orderRepository)
     }
     
     public getAllCategories = async (req: Request, res: Response): Promise<void> => {
@@ -28,6 +42,8 @@ export class CourseController {
             res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: 'Failed to fetch categories' });
         }
     }
+    
+
 
     public addCourse = async(req: Request, res: Response): Promise<void> => {
         try {
@@ -54,9 +70,7 @@ export class CourseController {
     }
 
     public approveCourse = async(req: Request, res: Response) => {
-        console.log("Inside course approval controller");
-        const { courseId } = req.params
-        console.log("courseId: ", courseId);
+        const { courseId } = req.params;
         
         try {
             await this._courseUseCase.approveCourse(courseId)
@@ -68,11 +82,8 @@ export class CourseController {
     }
 
     public toggleCourseStatus = async(req: Request, res: Response) => {
-        console.log("Inside togle block");
         const { courseId } = req.params;
         const { isBlocked } = req.body; 
-        console.log("courseId: ", courseId);
-        console.log("isBlocked: ", isBlocked);
         
         try {
             await this._courseUseCase.toggleCourseStatus(courseId, isBlocked)
@@ -159,15 +170,6 @@ export class CourseController {
         }
     };
 
-    // public fetchAllCourses = async(req: Request, res: Response) => {
-    //     try {
-    //         const courses = await this._courseUseCase.fetchAllCourse();
-    //         res.status(200).json(courses);
-    //     } catch (error) {
-    //         res.status(500).json({ error: 'Failed to fetch courses' });
-    //     }
-    // }
-
     public fetchAllCourses = async(req: Request, res: Response) => {
         try {
             const { search, categories, levels } = req.query;
@@ -214,15 +216,51 @@ export class CourseController {
 
     public fetchCourseDetails = async(req: Request, res: Response) => {
         try {
-            console.log("Inside fetch course Details");
-            
             const {courseId} = req.params
             const course = await this._courseUseCase.fetchCourseDetails(courseId);
-            console.log("course: ", course);
             
             res.status(200).json(course);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch course details' });
+        }
+    }
+
+    // public initializeCourseProgress = async(req: AuthenticatedRequest, res: Response) => {
+    //     try {
+    //         const studentId = req.userId;
+    //         if (!studentId) {
+    //             return res.status(400).json({ message: "StudentId missing in controller" });
+    //         }
+    
+    //         const { courseId, totalVideos } = req.body;
+    //         if (!courseId || !totalVideos) {
+    //             return res.status(400).json({ message: "CourseId and totalVideos are required." });
+    //         }
+    
+    //         await this._initializeCourseProgressUseCase.execute({ studentId, courseId, totalVideos });
+    //         res.status(201).json({ message: "Progress initialized successfully." });
+    //     } catch (error) {
+    //         console.error("Error initializing course progress:", error);
+    //         res.status(500).json({ message: "Failed to initialize progress.", error: error });
+    //     }
+    // }
+
+    public updateCourseProgress = async(req: AuthenticatedRequest, res: Response) => {
+        try {
+            const studentId = req.userId;
+            const { courseId, videoId } = req.body;
+    
+            if (!studentId || !courseId || !videoId) {
+                return res.status(400).json({
+                    message: "StudentId, courseId, and videoId are required to update progress.",
+                });
+            }
+    
+            await this._updateCourseProgressUseCase.execute({ studentId, courseId, videoId });
+            res.status(200).json({ message: "Progress updated successfully." });
+        } catch (error) {
+            console.error("Error updating course progress:", error);
+            res.status(500).json({ message: "Failed to update progress.", error: error });
         }
     }
 }

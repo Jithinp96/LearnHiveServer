@@ -10,6 +10,8 @@ import { TutorUseCase } from '../../application/useCases/tutor/TutorUseCase';
 import { RefundSlotOrderUseCase } from '../../application/useCases/student/RefundSlotOrderUseCase';
 import { OrderRepository } from '../../infrastructure/repositories/OrderRepository';
 import { HttpStatusEnum } from '../../shared/enums/HttpStatusEnum';
+import { InitializeCourseProgressUseCase } from '../../application/useCases/course/InitializeCourseProgressUseCase';
+import { ProgressRepository } from '../../infrastructure/repositories/ProgressRepository';
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -23,17 +25,21 @@ export class PaymentController {
   private _tutorSlotRepo: TutorSlotRepository;
   private _tutorRepo: TutorRepository;
   private _orderRepo: OrderRepository;
+  private _progressRepo: ProgressRepository
 
   private _tutorUseCase: TutorUseCase;
   private _refundSlotOrderUseCase: RefundSlotOrderUseCase;
+  private _initializeCourseProgressUseCase: InitializeCourseProgressUseCase;
 
   constructor() {
     this._tutorSlotRepo = new TutorSlotRepository();
     this._tutorRepo = new TutorRepository();
     this._orderRepo = new OrderRepository()
+    this._progressRepo = new ProgressRepository()
 
     this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
     this._refundSlotOrderUseCase = new RefundSlotOrderUseCase(this._orderRepo);
+    this._initializeCourseProgressUseCase = new InitializeCourseProgressUseCase(this._progressRepo)
   }
 
   public createPaymentIntent = async (req: AuthenticatedRequest, res: Response) => {
@@ -79,6 +85,7 @@ export class PaymentController {
   public createCoursePaymentIntent = async(req: AuthenticatedRequest, res: Response) => {
     try {
       const courseDetails = req.body;
+      
       const userId = req.userId;
       if (!userId) {
         return res.status(400).json({ error: 'User ID is required' });
@@ -106,6 +113,7 @@ export class PaymentController {
           type: 'course',
           courseId: courseDetails._id.toString(),
           userId: userId.toString(),
+          totalVideos: courseDetails.videos.length
         }
       });
 
@@ -183,10 +191,7 @@ export class PaymentController {
     };
 
     await CourseOrder.create(orderDetails);
-
-    // if (status === 'Completed') {
-      
-    // }
+    await this._initializeCourseProgressUseCase.execute({ studentId: session.metadata?.userId, courseId: session.metadata?.courseId, totalVideos:Number(session.metadata?.totalVideos) });
   }
 
   private handleSlotPayment = async (session: Stripe.Checkout.Session, status: 'Completed' | 'Failed') => {
@@ -214,16 +219,12 @@ export class PaymentController {
   }
 
   public handleRefund = async (req: AuthenticatedRequest, res: Response) => {
-    console.log("Reached handleRefund controller");
     
     try {
       const studentId = req.userId as string;
       const { slotOrderId } = req.params;
-      console.log("studentId: ", studentId);
-      console.log("slotOrderId: ", slotOrderId);
       
       const refundedOrder = await this._refundSlotOrderUseCase.execute(slotOrderId, studentId);
-      console.log("refundedOrder in handle refund controller: ", refundedOrder);
       
       res.status(HttpStatusEnum.OK).json({
         message: 'Slot order refunded successfully',

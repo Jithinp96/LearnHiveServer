@@ -1,4 +1,6 @@
 import { ITutor } from "../../domain/entities/user/ITutor";
+import { DatabaseError } from "../../domain/errors/DatabaseError";
+import { TutorNotFoundError, TutorUpdateError } from "../../domain/errors/TutorError";
 import { ITutorRepository } from "../../domain/interfaces/ITutorRepository";
 import { TutorModel } from "../database/models/TutorModel";
 
@@ -9,8 +11,7 @@ export class TutorRepository implements ITutorRepository {
             await newTutor.save();
             return newTutor.toObject() as ITutor;
         } catch (error) {
-            console.error('Error creating tutor:', error);
-            throw new Error('Failed to create tutor');
+            throw new DatabaseError();
         }
     }
 
@@ -19,8 +20,7 @@ export class TutorRepository implements ITutorRepository {
             const tutor = await TutorModel.findOne({ email }).lean().exec();
             return tutor as ITutor | null;
         } catch (error) {
-            console.error('Error finding tutor by email:', error);
-            throw new Error('Failed to find tutor by email');
+            throw new TutorNotFoundError();
         }
     }
 
@@ -29,8 +29,7 @@ export class TutorRepository implements ITutorRepository {
             await TutorModel.updateOne({ email: tutor.email }, tutor);
             return tutor;
         } catch (error) {
-            console.error('Error updating tutor:', error);
-            throw new Error('Failed to update tutor');
+            throw new TutorUpdateError();
         }
     }
 
@@ -39,8 +38,7 @@ export class TutorRepository implements ITutorRepository {
             const tutors = await TutorModel.find().lean().exec();
             return tutors as unknown as ITutor[];
         } catch (error) {
-            console.error('Error fetching all tutors:', error);
-            throw new Error('Failed to retrieve tutors');
+            throw new DatabaseError();
         }
     }
 
@@ -49,8 +47,7 @@ export class TutorRepository implements ITutorRepository {
             const tutor = await TutorModel.findById(id).lean();
             return tutor as ITutor | null
         } catch (error) {
-            console.error('Error finding tutor by ID:', error);
-            throw new Error('Failed to find tutor by ID');
+            throw new DatabaseError();
         }
     }
 
@@ -61,8 +58,7 @@ export class TutorRepository implements ITutorRepository {
                 { $set: { password: hashedPassword } }
             );
         } catch (error) {
-            console.error('Error updating student password:', error);
-            throw new Error('Failed to update student password');
+            throw new TutorUpdateError()
         }
     }
 }

@@ -14,4 +14,8 @@ export class OrderUseCase {
     async getSlotOrders(studentId: string): Promise<ISlotOrder[]> {
         return this._orderRepo.getSlotOrderByStudentId(studentId)
     }
+
+    async updateCompletionStatus(studentId: string, courseId: string, completionStatus: string) {
+        return this._orderRepo.updateCompletionStatus(studentId, courseId, completionStatus)
+    }
 }

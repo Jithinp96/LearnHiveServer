@@ -50,4 +50,11 @@ export class OrderRepository implements IOrderRepository {
       _id: updatedOrder._id.toString(),
     } as ISlotOrder;
   }
+
+  async updateCompletionStatus(studentId: string, courseId: string, status: string): Promise<void> {
+    await CourseOrderModel.updateOne(
+        { studentId, courseId },
+        { completionStatus: status }
+    );
+}
 }

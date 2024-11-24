@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import { RegisterTutor } from "../../application/useCases/tutor/RegisterTutor";
 import { VerifyOTPTutor } from "../../application/useCases/VerifyOTP";
@@ -23,6 +23,11 @@ import { GenerateMultipleSlotUseCase } from "../../application/useCases/tutor/Ge
 import { GetTutorDashboardUseCase } from "../../application/useCases/tutor/GetTutorDashboardUseCase";
 import { OrderRepository } from "../../infrastructure/repositories/OrderRepository";
 import { TutorDashboardRepository } from "../../infrastructure/repositories/TutorDashboardRepository";
+import { IGoogleJWT } from "../../domain/entities/user/IGoogleJWT";
+import { jwtDecode } from "jwt-decode";
+import { SuccessMessageEnum } from "../../shared/enums/SuccessMessageEnum";
+import { GoogleSignInUseCase } from "../../application/useCases/tutor/GoogleSignInUseCase";
+import { EmailService } from "../../infrastructure/services/EmailService";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -37,7 +42,11 @@ export class TutorController {
   private _registerTutor: RegisterTutor;
   private _verifyOTPUseCase: VerifyOTPTutor;
   private _loginTutorUseCase: LoginTutorUseCase;
+  private _googleSignInUseCase: GoogleSignInUseCase;
+
   private _jwtService: JWTService;
+  private _emailService: EmailService
+
   private _forgotPasswordUseCase: ForgotPassword;
   private _resetPasswordUseCase: ResetPassword;
   private _tutorUseCase: TutorUseCase;
@@ -50,10 +59,13 @@ export class TutorController {
       this._tutorSlotPreferenceRepository = new TutorSlotPreferenceRepository();
       this._tutorDashboardRepo = new TutorDashboardRepository()
 
-      this._registerTutor = new RegisterTutor(this._tutorRepo);
-      this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
       this._jwtService = new JWTService();
+      this._emailService = new EmailService()
+
+      this._registerTutor = new RegisterTutor(this._tutorRepo, this._emailService);
+      this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
       this._loginTutorUseCase = new LoginTutorUseCase(this._tutorRepo, this._jwtService);
+      this._googleSignInUseCase = new GoogleSignInUseCase(this._tutorRepo)
       this._forgotPasswordUseCase = new ForgotPassword(this._tutorRepo);
       this._resetPasswordUseCase = new ResetPassword(this._tutorRepo);
       this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
@@ -62,19 +74,23 @@ export class TutorController {
     }
 
   //REGISTER TUTOR
-  public register = async (req: Request, res: Response): Promise<void> => {
+  public register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { name, email, mobile, password } = req.body;
       try {
-        const { name, email, mobile, password } = req.body;
         await this._registerTutor.execute({ name, email, mobile, password });
   
         res.cookie("OTPEmail", email, {
           httpOnly: true,
           maxAge: 24 * 60 * 60 * 1000,
+          secure: process.env.NODE_ENV !== "development"
         });
   
-        res.status(HttpStatusEnum.CREATED).json({ message: "Registration successful. OTP sent to email." });
+        res.status(HttpStatusEnum.CREATED).json({ 
+          success: true,
+          message: SuccessMessageEnum.REGISTRATION_SUCCESS 
+        });
       } catch (error) {
-        res.status(HttpStatusEnum.BAD_REQUEST).json({ error });
+        next(error)
       }
   };
 
@@ -137,7 +153,7 @@ export class TutorController {
     }
   };
 
-  public login = async (req: Request, res: Response): Promise<void> => {
+  public login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { email, password } = req.body;
     
     try {
@@ -149,10 +165,29 @@ export class TutorController {
             tutor,
         })
     } catch (error) {
-        console.error("Login error:", error);
-        res.status(HttpStatusEnum.UNAUTHORIZED).json({  error });
+        next(error)
     }
   }
+
+  public googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+    const { credentials } = req.body;
+    const decoded: IGoogleJWT = jwtDecode(credentials);
+    const { name, email, sub } = decoded;
+
+    try {
+        const { accessToken, refreshToken, tutor } = await this._googleSignInUseCase.execute(email, name, sub);
+
+        JWTService.setTokens(res, accessToken, refreshToken);
+
+        res.status(HttpStatusEnum.OK).json({
+            success: true,
+            message: SuccessMessageEnum.LOGIN_SUCCESS,
+            tutor
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
   public forgotPassword = async (req: Request, res: Response): Promise<void> => {
     try {

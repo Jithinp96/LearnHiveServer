@@ -178,8 +178,6 @@ public googleLogin = async (req: Request, res: Response, next: NextFunction) => 
             student
         });
     } catch (error) {
-        console.log("Catch of google signin controller: ", error);
-        
         next(error);
     }
 }
@@ -471,4 +469,6 @@ public editProfilePicture = async (req: AuthenticatedRequest, res: Response, nex
   //   const updatedStudent = await this._studentUseCase.editProfilePic(id, url);
   //   res.status(200).json(updatedStudent);
   // }
+
+  
 }

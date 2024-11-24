@@ -64,13 +64,15 @@ studentRoutes.get('/getcategories', courseController.getAllCategories);
 
 studentRoutes.get('/allcourses', courseController.fetchAllCourses);
 studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
+// studentRoutes.post('/initialize-course-progress', courseController.initializeCourseProgress);
+studentRoutes.put('/update-course-progress', courseController.updateCourseProgress)
 
 studentRoutes.get('/course-orders/', AuthMiddleware(authService), orderController.getCourseOrdersByStudent)
 studentRoutes.get('/slot-orders/', AuthMiddleware(authService), orderController.getSlotOrdersByStudent)
 
-studentRoutes.post('/add-to-cart', AuthMiddleware(authService), cartController.addCourseToCart);
-studentRoutes.get('/cart', AuthMiddleware(authService), cartController.fetchCart)
-studentRoutes.delete('/cart/delete/:courseId', AuthMiddleware(authService), cartController.deleteFromCart)
+// studentRoutes.post('/add-to-cart', AuthMiddleware(authService), cartController.addCourseToCart);
+// studentRoutes.get('/cart', AuthMiddleware(authService), cartController.fetchCart)
+// studentRoutes.delete('/cart/delete/:courseId', AuthMiddleware(authService), cartController.deleteFromCart)
 
 studentRoutes.post('/create-checkout-session', AuthMiddleware(authService), cartController.payment)
 
