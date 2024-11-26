@@ -1,5 +1,3 @@
-import mongoose, { Types } from 'mongoose';
-
 import { ICourseOrder } from "../../domain/entities/ICourseOrder";
 import { ISlotOrder } from "../../domain/entities/ISlotOrder";
 import { IOrderRepository } from "../../domain/interfaces/IOrderRepository";
@@ -57,4 +55,57 @@ export class OrderRepository implements IOrderRepository {
         { completionStatus: status }
     );
   }
+
+
+  async getTopPurchasedCourses(limit: number): Promise<any> {
+    return CourseOrderModel.aggregate([
+        { $match: { paymentStatus: 'Completed' } },
+        { $group: { _id: "$courseId", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: limit },
+        { $lookup: { from: "courses", localField: "_id", foreignField: "_id", as: "course" } },
+        { $unwind: "$course" },
+        { $project: { _id: 0, course: 1 } }
+    ]);
+  }
+
+//   async getTopCategories(limit: number): Promise<any> {
+//     return CourseOrderModel.aggregate([
+//         { $match: { paymentStatus: 'Completed' } },
+//         {
+//             $lookup: {
+//                 from: "courses", // Join with courses collection
+//                 localField: "courseId",
+//                 foreignField: "_id",
+//                 as: "course",
+//             },
+//         },
+//         { $unwind: "$course" },
+//         {
+//             $group: {
+//                 _id: "$course.category", // Group by category ID
+//                 count: { $sum: 1 },
+//             },
+//         },
+//         {
+//             $lookup: {
+//                 from: "coursecategories", // Join with CourseCategory collection
+//                 localField: "_id",
+//                 foreignField: "_id",
+//                 as: "category",
+//             },
+//         },
+//         { $unwind: "$category" }, // Unwind the category array to get a single object
+//         {
+//             $project: {
+//                 _id: 0, // Exclude the original `_id`
+//                 categoryId: "$_id", // Include the category ID under a new key
+//                 name: "$category.name", // Include the name field from the category
+//                 count: 1, // Include the count
+//             },
+//         },
+//         { $sort: { count: -1 } }, // Sort by count in descending order
+//         { $limit: limit }, // Limit the number of results
+//     ]);
+// }
 }

@@ -22,7 +22,7 @@ const tutorRepo = new TutorRepository()
 const authService = new AuthService(studentRepo, tutorRepo)
 
 adminRoutes.post('/login', (req, res) => adminController.login(req, res));
-adminRoutes.post('/logout/:role', adminController.logout);
+adminRoutes.post('/logout', adminController.logout);
 
 adminRoutes.get('/dashboard', AuthMiddleware(authService), adminController.getAdminDashboard)
 

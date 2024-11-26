@@ -245,6 +245,29 @@ export class CourseController {
         }
     }
 
+    public fetchStudentCourseProgress = async(req: AuthenticatedRequest, res: Response) => {
+        try {
+            const studentId = req.userId
+            if (!studentId) {
+                return res.status(HttpStatusEnum.UNAUTHORIZED).json({
+                    success: false,
+                    message: AuthErrorEnum.INVALID_ID
+                });
+            }
+
+            const courseProgress = await this._courseUseCase.fetchStudentCourseProgress(studentId);
+            return res.status(HttpStatusEnum.OK).json({
+                success: true,
+                data: courseProgress,
+            });
+        } catch (error) {
+            return res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: "An error occurred while fetching course progress.",
+            });
+        }
+    }
+
     public updateCourseProgress = async(req: AuthenticatedRequest, res: Response) => {
         try {
             const studentId = req.userId;

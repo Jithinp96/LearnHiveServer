@@ -64,6 +64,14 @@ export class CourseUseCase {
         }
     }
 
+    async fetchStudentCourseProgress(studentId: string): Promise<void> {
+        try {
+            return this._courseRepository.findStudentCourseProgress(studentId)
+        } catch (error) {
+            throw new Error("Unable to fetch student course progress.");
+        }
+    }
+
     async approveCourse(courseId: string): Promise<void> {
         const course = await this._courseRepository.findCourseById(courseId);
 

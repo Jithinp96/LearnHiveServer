@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import { JWTService } from "../../shared/utils/JWTService";
 import { HttpStatusEnum } from "../../shared/enums/HttpStatusEnum";
@@ -13,6 +13,7 @@ import { TutorRepository } from "../../infrastructure/repositories/TutorReposito
 import { LogoutAdminUseCase } from "../../application/useCases/admin/LogoutAdminUseCase";
 import { GetAdminDashboardStatsUseCase } from "../../application/useCases/admin/GetAdminDashboardUseCase";
 import { AdminDashboardRepository } from "../../infrastructure/repositories/AdminDashboardRepository";
+import { SuccessMessageEnum } from "../../shared/enums/SuccessMessageEnum";
 
 
 const studentRepository = new StudentRepository();
@@ -46,9 +47,16 @@ export class AdminController {
         }
     }
 
-    public logout = async(req: Request, res: Response) => {
-        const role = req.params.role;
-        return LogoutAdminUseCase.execute(req, res);
+    public logout = async(req: Request, res: Response, next: NextFunction) => {
+        try {
+            await LogoutAdminUseCase.execute(res);
+            res.status(HttpStatusEnum.OK).json({
+                success: true,
+                message: SuccessMessageEnum.LOGOUT_SUCCESS
+            });
+        } catch (error) {
+            next(error);
+        }
       }
 
     public getAdminDashboard = async(req: Request, res: Response) => {

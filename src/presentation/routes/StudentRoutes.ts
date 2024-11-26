@@ -39,7 +39,7 @@ studentRoutes.post('/reset-password', studentController.resetPassword);
 
 studentRoutes.post('/login', studentController.login);
 studentRoutes.post('/google-login', studentController.googleLogin)
-studentRoutes.post('/logout/:role', AuthMiddleware(authService), studentController.logout);
+studentRoutes.post('/logout', AuthMiddleware(authService), studentController.logout);
 
 studentRoutes.get('/dashboard', AuthMiddleware(authService), studentController.getDashboard)
 
@@ -67,6 +67,7 @@ studentRoutes.get('/course/:courseId', courseController.fetchCourseDetails);
 studentRoutes.get('/course-view/:courseId', AuthMiddleware(authService), courseController.fetchCourseView);
 // studentRoutes.post('/initialize-course-progress', courseController.initializeCourseProgress);
 studentRoutes.put('/course-progress', AuthMiddleware(authService), courseController.updateCourseProgress)
+studentRoutes.get('/allcourse-progress', AuthMiddleware(authService), courseController.fetchStudentCourseProgress)
 
 studentRoutes.get('/course-orders/', AuthMiddleware(authService), orderController.getCourseOrdersByStudent)
 studentRoutes.get('/slot-orders/', AuthMiddleware(authService), orderController.getSlotOrdersByStudent)

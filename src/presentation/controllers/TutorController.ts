@@ -211,9 +211,16 @@ export class TutorController {
     }
   };
 
-  public logout = async(req: Request, res: Response) => {
-    const role = req.params.role;
-    return LogoutTutorUseCase.execute(req, res, role);
+  public logout = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+      await LogoutTutorUseCase.execute(res);
+      res.status(HttpStatusEnum.OK).json({
+        success: true,
+        message: SuccessMessageEnum.LOGOUT_SUCCESS
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 
   public getDashboard = async (req: AuthenticatedRequest, res: Response) => {

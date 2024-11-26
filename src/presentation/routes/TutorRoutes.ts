@@ -28,7 +28,7 @@ tutorRoutes.post('/reset-password', tutorController.resetPassword);
 
 tutorRoutes.post('/login', tutorController.login);
 tutorRoutes.post('/google-login', tutorController.googleLogin)
-tutorRoutes.post('/logout/:role', AuthMiddleware(authService), tutorController.logout);
+tutorRoutes.post('/logout', AuthMiddleware(authService), tutorController.logout);
 
 tutorRoutes.get('/dashboard', AuthMiddleware(authService), tutorController.getDashboard)
 

@@ -1,17 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface Review {
+export interface Review {
     rating: number;
     comment: string;
     userId: string;
 }
   
-interface Comment {
+export interface Comment {
     content: string;
     userId: string;
 }
 
-interface CourseDocument extends Document {
+export interface CourseDocument extends Document {
     tutorId: string;
     title: string;
     description: string;
