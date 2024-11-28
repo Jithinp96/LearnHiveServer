@@ -27,7 +27,7 @@ import { IGoogleJWT } from "../../domain/entities/user/IGoogleJWT";
 import { jwtDecode } from "jwt-decode";
 import { SuccessMessageEnum } from "../../shared/enums/SuccessMessageEnum";
 import { GoogleSignInUseCase } from "../../application/useCases/tutor/GoogleSignInUseCase";
-import { EmailService } from "../../infrastructure/services/EmailService";
+// import { EmailService } from "../../infrastructure/services/EmailServiceTutor";
 
 interface AuthenticatedRequest extends Request {
   userId?: string;
@@ -45,7 +45,7 @@ export class TutorController {
   private _googleSignInUseCase: GoogleSignInUseCase;
 
   private _jwtService: JWTService;
-  private _emailService: EmailService
+  // private _emailService: EmailService
 
   private _forgotPasswordUseCase: ForgotPassword;
   private _resetPasswordUseCase: ResetPassword;
@@ -60,9 +60,9 @@ export class TutorController {
       this._tutorDashboardRepo = new TutorDashboardRepository()
 
       this._jwtService = new JWTService();
-      this._emailService = new EmailService()
+      // this._emailService = new EmailService()
 
-      this._registerTutor = new RegisterTutor(this._tutorRepo, this._emailService);
+      this._registerTutor = new RegisterTutor(this._tutorRepo);
       this._verifyOTPUseCase = new VerifyOTPTutor(this._tutorRepo);
       this._loginTutorUseCase = new LoginTutorUseCase(this._tutorRepo, this._jwtService);
       this._googleSignInUseCase = new GoogleSignInUseCase(this._tutorRepo)

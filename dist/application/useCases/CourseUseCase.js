@@ -33,10 +33,10 @@ class CourseUseCase {
             return video;
         });
     }
-    fetchAllCourse(filters) {
+    fetchAllCourse(filters, studentId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return this._courseRepository.findAllCourse(filters);
+                return this._courseRepository.findAllCourse(filters, studentId);
             }
             catch (error) {
                 console.error('Error fetching courses:', error);
@@ -74,6 +74,16 @@ class CourseUseCase {
             catch (error) {
                 console.error('Error fetching course details:', error);
                 throw new Error('Failed to fetch course details');
+            }
+        });
+    }
+    fetchStudentCourseProgress(studentId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return this._courseRepository.findStudentCourseProgress(studentId);
+            }
+            catch (error) {
+                throw new Error("Unable to fetch student course progress.");
             }
         });
     }

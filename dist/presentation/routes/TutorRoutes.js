@@ -24,7 +24,7 @@ tutorRoutes.post('/forgot-password', tutorController.forgotPassword);
 tutorRoutes.post('/reset-password', tutorController.resetPassword);
 tutorRoutes.post('/login', tutorController.login);
 tutorRoutes.post('/google-login', tutorController.googleLogin);
-tutorRoutes.post('/logout/:role', (0, AuthMiddleware_1.default)(authService), tutorController.logout);
+tutorRoutes.post('/logout', (0, AuthMiddleware_1.default)(authService), tutorController.logout);
 tutorRoutes.get('/dashboard', (0, AuthMiddleware_1.default)(authService), tutorController.getDashboard);
 tutorRoutes.get('/profile/:id', (0, AuthMiddleware_1.default)(authService), tutorController.getProfile);
 tutorRoutes.get('/tutorprofile/:id', tutorController.getProfile);

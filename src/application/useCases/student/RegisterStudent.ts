@@ -13,7 +13,6 @@ import { sendOTPEmail } from "../../../infrastructure/services/EmailServiceTutor
 export class RegisterStudentUseCase {
     constructor(
         private _studentRepo: IStudentRepository,
-        private _emailService: IEmailService
     ) {}
 
     async execute(data: StudentRegistrationDTO): Promise<void> {
@@ -45,7 +44,6 @@ export class RegisterStudentUseCase {
             const expiredAt = new Date(Date.now() + 60000);
             await OTPModel.create({ email: data.email, otp, expiredAt });
             await sendOTPEmail(data.email, otp);
-            // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
         } catch (error) {
             if (error instanceof StudentAlreadyExistsError) {
                 throw error;

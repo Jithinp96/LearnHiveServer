@@ -173,10 +173,10 @@ export class CourseController {
 
     public fetchAllCourses = async(req: Request, res: Response) => {
         try {
-            const { search, categories, levels } = req.query;
+            const { search, categories, levels, studentId  } = req.query;
             
             const filters: any = {
-                isApproved: false,
+                isApproved: true,
                 isBlocked: false
             };
     
@@ -199,7 +199,7 @@ export class CourseController {
                 };
             }
     
-            const courses = await this._courseUseCase.fetchAllCourse(filters);
+            const courses = await this._courseUseCase.fetchAllCourse(filters, studentId as string);
             res.status(200).json(courses);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch courses' });

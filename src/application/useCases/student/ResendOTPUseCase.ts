@@ -3,11 +3,11 @@ import { IEmailService } from '../../../domain/interfaces/IEmailService';
 import { AuthErrorEnum } from '../../../shared/enums/ErrorMessagesEnum';
 import { SuccessMessageEnum } from '../../../shared/enums/SuccessMessageEnum';
 import { generateOTP } from '../../../shared/utils/OTPService';
+import { sendOTPEmail } from '../../../infrastructure/services/EmailServiceTutor';
 
 export class ResendOTPUseCase {
     constructor(
-        private otpRepository: IOTPRepository,
-        private emailService: IEmailService
+        private otpRepository: IOTPRepository
     ) {}
 
     async execute(email: string): Promise<string> {
@@ -26,7 +26,7 @@ export class ResendOTPUseCase {
         
         await this.otpRepository.save({ email, otp, expiredAt });
         // await this.emailService.send(email, `Your OTP is: ${otp}`);
-
+        await sendOTPEmail(email, otp);
         return SuccessMessageEnum.OTP_RESENT;
     }
 }

@@ -23,7 +23,6 @@ import { CourseCategoryRepository } from "../../infrastructure/repositories/Cour
 import { JWTService } from "../../shared/utils/JWTService";
 
 import { TutorModel } from "../../infrastructure/database/models/TutorModel";
-import { EmailService } from "../../infrastructure/services/EmailService";
 
 import { s3 } from "../../infrastructure/config/awsS3Config";
 
@@ -51,7 +50,7 @@ export class StudentController {
     private _tutorSlotRepo: TutorSlotRepository;
     private _courseCategoryRepo: CourseCategoryRepository;
     private _otpRepo : OTPRepository;
-    private _emailService: EmailService
+    // private _emailService: EmailService
 
     private _registerStudentUseCase: RegisterStudentUseCase;
     private _verifyOTPUseCase: VerifyOTP;
@@ -71,10 +70,10 @@ export class StudentController {
         this._tutorRepo = new TutorRepository();
         this._tutorSlotRepo = new TutorSlotRepository();
         this._otpRepo = new OTPRepository()
-        this._emailService = new EmailService()
+        // this._emailService = new EmailService()
 
         this._jwtService= new JWTService()
-        this._registerStudentUseCase = new RegisterStudentUseCase(this._studentRepo, this._emailService);
+        this._registerStudentUseCase = new RegisterStudentUseCase(this._studentRepo);
         this._verifyOTPUseCase = new VerifyOTP(this._studentRepo);
         this._loginStudentUseCase = new LoginStudentUseCase(this._studentRepo, this._jwtService)
         this._googleSignInUseCase = new GoogleSignInUseCase(this._studentRepo)
@@ -82,7 +81,7 @@ export class StudentController {
         this._resetPasswordUseCase = new ResetPasswordUseCase(this._studentRepo);
         this._studentUseCase = new StudentUseCase(this._studentRepo);
         this._courseCategoryUseCases= new CourseCategoryUseCases(this._courseCategoryRepo)
-        this._resendOTPUseCase = new ResendOTPUseCase(this._otpRepo, this._emailService)
+        this._resendOTPUseCase = new ResendOTPUseCase(this._otpRepo)
         this._tutorUseCase = new TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
         const courseRepo = new CourseRepository();
     }

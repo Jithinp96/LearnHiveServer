@@ -9,28 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderUseCase = void 0;
-class OrderUseCase {
-    constructor(_orderRepo) {
+exports.StudentDashboardUseCase = void 0;
+class StudentDashboardUseCase {
+    constructor(_courseRepo, _orderRepo) {
+        this._courseRepo = _courseRepo;
         this._orderRepo = _orderRepo;
     }
-    getCourseOrders(studentId, page, limit) {
+    execute(studentId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.getCourseOrderByStudentId(studentId, { page, limit });
-        });
-    }
-    // async getSlotOrders(studentId: string): Promise<ISlotOrder[]> {
-    //     return this._orderRepo.getSlotOrderByStudentId(studentId)
-    // }
-    getSlotOrders(studentId, page, limit) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.getSlotOrderByStudentId(studentId, { page, limit });
-        });
-    }
-    updateCompletionStatus(studentId, courseId, completionStatus) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this._orderRepo.updateCompletionStatus(studentId, courseId, completionStatus);
+            const [newCourses, topRatedCourses, suggestedCourses, topPurchasedCourses] = yield Promise.all([
+                this._courseRepo.getNewCourses(4),
+                this._courseRepo.getTopRatedCourses(4),
+                this._courseRepo.getSuggestedCourses(studentId, 4),
+                this._orderRepo.getTopPurchasedCourses(4)
+            ]);
+            return {
+                newCourses,
+                topRatedCourses,
+                suggestedCourses,
+                topPurchasedCourses
+            };
         });
     }
 }
-exports.OrderUseCase = OrderUseCase;
+exports.StudentDashboardUseCase = StudentDashboardUseCase;

@@ -13,10 +13,10 @@ exports.ResendOTPUseCase = void 0;
 const ErrorMessagesEnum_1 = require("../../../shared/enums/ErrorMessagesEnum");
 const SuccessMessageEnum_1 = require("../../../shared/enums/SuccessMessageEnum");
 const OTPService_1 = require("../../../shared/utils/OTPService");
+const EmailServiceTutor_1 = require("../../../infrastructure/services/EmailServiceTutor");
 class ResendOTPUseCase {
-    constructor(otpRepository, emailService) {
+    constructor(otpRepository) {
         this.otpRepository = otpRepository;
-        this.emailService = emailService;
     }
     execute(email) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -32,6 +32,7 @@ class ResendOTPUseCase {
             console.log("New OTP: ", otp);
             yield this.otpRepository.save({ email, otp, expiredAt });
             // await this.emailService.send(email, `Your OTP is: ${otp}`);
+            yield (0, EmailServiceTutor_1.sendOTPEmail)(email, otp);
             return SuccessMessageEnum_1.SuccessMessageEnum.OTP_RESENT;
         });
     }

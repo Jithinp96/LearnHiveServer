@@ -20,9 +20,8 @@ const OTPModel_1 = require("../../../infrastructure/database/models/OTPModel");
 const EmailServiceTutor_1 = require("../../../infrastructure/services/EmailServiceTutor");
 const TutorError_1 = require("../../../domain/errors/TutorError");
 class RegisterTutor {
-    constructor(_tutorRepo, _emailService) {
+    constructor(_tutorRepo) {
         this._tutorRepo = _tutorRepo;
-        this._emailService = _emailService;
     }
     execute(data) {
         return __awaiter(this, void 0, void 0, function* () {

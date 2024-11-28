@@ -26,10 +26,19 @@ export class CourseRepository implements ICourseRepository {
         }
     }
 
-    async findAllCourse(filters: any): Promise<ICourse[]> {
+    async findAllCourse(filters: any, studentId?: string): Promise<ICourse[]> {
         try {
+            if (studentId) {
+                const purchasedCourseIds = await CourseOrder.find({ 
+                    studentId: studentId,
+                    // status: 'completed' 
+                }).distinct('courseId');
+    
+                filters._id = { $nin: purchasedCourseIds };
+            }
             const courses = await CourseModel.find(filters)
                 .populate('category', 'name');
+                
             return courses;
         } catch (error) {
             console.error('Error fetching courses:', error);

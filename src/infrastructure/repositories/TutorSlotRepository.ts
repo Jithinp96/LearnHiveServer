@@ -25,5 +25,10 @@ export class TutorSlotRepository implements ITutorSlotRepository {
 
     async updateSlotBooking( slotId: string, updateData: { isBooked: boolean; studentId: string; meetingId: string; meetingLink: string }): Promise<void> {
         await TutorSlotModel.findByIdAndUpdate( slotId, updateData, { new: true } );
-      }
+    }
+
+    async findByMeetingId(meetingId: string): Promise<ITutorSlot | null> {
+        const slot = await TutorSlotModel.findOne({ meetingId }).exec();
+        return slot ? new TutorSlotModel(slot) : null;
+    }
 }

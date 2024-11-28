@@ -29,7 +29,7 @@ export class ForgotPassword {
 
             const subject = 'Password Reset Request';
             const body = `To reset your password, please click the following link: ${resetLink}`;
-            await sendEmail(tutor.email, subject, body);
+            await sendEmail(tutor.email, resetLink);
 
             res.status(HttpStatusEnum.OK).json({ message: 'Password reset link sent to your email.' });
             return;

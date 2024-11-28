@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const HttpStatusEnum_1 = require("../../shared/enums/HttpStatusEnum");
 const TokenError_1 = require("../../domain/errors/TokenError");
 const AuthMiddleware = (authService) => {
+    console.log("Reached Auth middleware");
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const refreshToken = req.cookies.refreshToken;

@@ -1,30 +1,89 @@
 import { ICourseOrder } from "../../domain/entities/ICourseOrder";
+import { IPaginationOptions } from "../../domain/entities/IPaginationOptions";
 import { ISlotOrder } from "../../domain/entities/ISlotOrder";
 import { IOrderRepository } from "../../domain/interfaces/IOrderRepository";
 import { CourseOrder as CourseOrderModel } from "../database/models/CourseOrderModel";
 import { SlotOrder as SlotOrderModel} from "../database/models/SlotOrderModel";
 
 export class OrderRepository implements IOrderRepository {
-  async getCourseOrderByStudentId(studentId: string): Promise<ICourseOrder[]> {
-    return CourseOrderModel.find({ studentId })
-    .populate({
-      path: "courseId",
-      select: "title category thumbnailUrl level duration reviews",
-      populate: {
-        path: 'category',
-        select: 'name',
-      }
-    })
-    .then((orders) => orders as ICourseOrder[]);
+  async getCourseOrderByStudentId(studentId: string, options: IPaginationOptions = { page: 1, limit: 6 }): Promise<{ courseOrders: ICourseOrder[]; totalOrders: number;totalPages: number; currentPage: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 6;
+    const skip = (page - 1) * limit;
+    
+    // return CourseOrderModel.find({ studentId })
+    // .populate({
+    //   path: "courseId",
+    //   select: "title category thumbnailUrl level duration reviews",
+    //   populate: {
+    //     path: 'category',
+    //     select: 'name',
+    //   }
+    // })
+    // .sort({ 'createdAt': -1 })
+    // .then((orders) => orders as ICourseOrder[]);
+
+    const [courseOrders, totalOrders] = await Promise.all([
+      CourseOrderModel.find({ studentId })
+        .populate({
+          path: "courseId",
+          select: "title category thumbnailUrl level duration reviews",
+          populate: {
+            path: 'category',
+            select: 'name',
+          }
+        })
+        .sort({ 'createdAt': -1 })
+        .skip(skip)
+        .limit(limit)
+        .then((slots) => slots as ICourseOrder[]),
+
+      CourseOrderModel.countDocuments({ studentId })
+    ])
+    return {
+      courseOrders,
+      totalOrders,
+      totalPages: Math.ceil(totalOrders / limit),
+      currentPage: page
+    }
   }
 
-  async getSlotOrderByStudentId(studentId: string): Promise<ISlotOrder[]> {
-    return SlotOrderModel.find({ studentId })
-    .populate({
-      path: "slotId",
-      select: "subject level date startTime endTime meetingLink",
-    })
-    .then((slots) => slots as ISlotOrder[]);
+  // async getSlotOrderByStudentId(studentId: string): Promise<ISlotOrder[]> {
+  //   const slotOrders = await SlotOrderModel.find({ studentId })
+  //   .populate({
+  //     path: "slotId",
+  //     select: "subject level date startTime endTime meetingLink",
+  //   })
+  //   .sort({ 'createdAt': -1 })
+  //   .then((slots) => slots as ISlotOrder[]);
+  //   return slotOrders
+  // }
+  
+  async getSlotOrderByStudentId(studentId: string, options: IPaginationOptions = { page: 1, limit: 5 }): Promise<{ slotOrders: ISlotOrder[]; totalOrders: number;totalPages: number; currentPage: number }> {
+    const page = options.page || 1;
+    const limit = options.limit || 5;
+    const skip = (page - 1) * limit;
+  
+    const [slotOrders, totalOrders] = await Promise.all([
+      SlotOrderModel.find({ studentId })
+        .populate({
+          path: "slotId",
+          select: "subject level date startTime endTime meetingLink",
+        })
+        .sort({ 'createdAt': -1 })
+        .skip(skip)
+        .limit(limit)
+        .then((slots) => slots as ISlotOrder[]),
+      
+      SlotOrderModel.countDocuments({ studentId })
+    ]);
+  
+    return {
+      slotOrders,
+      totalOrders,
+      totalPages: Math.ceil(totalOrders / limit),
+      currentPage: page
+    };
   }
 
   async getSlotOrderById(slotOrderId: string): Promise<ISlotOrder> {

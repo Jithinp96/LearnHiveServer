@@ -6,13 +6,11 @@ import { generateUniqueId } from '../../../shared/utils/IDService';
 import { generateOTP } from '../../../shared/utils/OTPService';
 import { OTPModel } from '../../../infrastructure/database/models/OTPModel';
 import { sendOTPEmail } from '../../../infrastructure/services/EmailServiceTutor';
-import { IEmailService } from '../../../domain/interfaces/IEmailService';
 import { RegistrationError, TutorAlreadyExistsError } from '../../../domain/errors/TutorError';
 
 export class RegisterTutor {
     constructor(
-        private _tutorRepo: ITutorRepository,
-        private _emailService: IEmailService
+        private _tutorRepo: ITutorRepository
     ) {}
 
     async execute(data: TutorRegistrationDTO): Promise<void> {

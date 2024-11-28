@@ -10,9 +10,11 @@ import studentRoutes from "./presentation/routes/StudentRoutes";
 import tutorRoutes from "./presentation/routes/TutorRoutes";
 import adminRoutes from "./presentation/routes/AdminRoutes";
 import messageRoute from "./presentation/routes/MessageRoutes";
+import videoCallRoute from "./presentation/routes/VideoCallRoutes";
+import assessmentRoute from "./presentation/routes/AssessmentRoutes";
+
 import { errorHandler } from "./infrastructure/middlewares/ErrorHandler";
 import { CronScheduler } from "./infrastructure/services/CronScheduler";
-import assessmentRoute from "./presentation/routes/AssessmentRoutes";
 import { initializeSocket } from "./infrastructure/config/socket";
 
 dotenv.config();
@@ -34,7 +36,6 @@ app.use((req, res, next) => {
 
 const corsOptions = {
   origin: `${process.env.CORSURL}`,
-  // origin: 'https://learnhive.vercel.app',
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   credentials: true,
 };
@@ -48,6 +49,7 @@ app.use("/api/tutor", tutorRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/chat", messageRoute);
 app.use("/api/assessment", assessmentRoute);
+app.use("/api/video-call", videoCallRoute)
 
 app.use(errorHandler);
 

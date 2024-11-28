@@ -21,9 +21,10 @@ export class ForgotPasswordUseCase {
         const forgotPasswordToken = JWTService.generateForgotToken({ userId: student.studentId });
         const resetLink = `${process.env.CORSURL}/reset-password?token=${forgotPasswordToken}`;
 
-        const subject = 'Password Reset Request';
-        const body = `To reset your password, please click the following link: ${resetLink}`;
+        // const subject = 'Password Reset Request';
+        // const body = `To reset your password, please click the following link: ${resetLink}`;
         
-        await sendEmail(student.email, subject, body);
+        // await sendEmail(student.email, subject, body);
+        await sendEmail(student.email, resetLink);
     }
 }

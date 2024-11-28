@@ -30,13 +30,18 @@ const TutorSlotRepository_1 = require("../../infrastructure/repositories/TutorSl
 const CourseCategoryRepository_1 = require("../../infrastructure/repositories/CourseCategoryRepository");
 const JWTService_1 = require("../../shared/utils/JWTService");
 const TutorModel_1 = require("../../infrastructure/database/models/TutorModel");
-const EmailService_1 = require("../../infrastructure/services/EmailService");
 const awsS3Config_1 = require("../../infrastructure/config/awsS3Config");
 const HttpStatusEnum_1 = require("../../shared/enums/HttpStatusEnum");
 const SuccessMessageEnum_1 = require("../../shared/enums/SuccessMessageEnum");
 const ErrorMessagesEnum_1 = require("../../shared/enums/ErrorMessagesEnum");
+const CourseRepository_1 = require("../../infrastructure/repositories/CourseRepository");
+const OrderRepository_1 = require("../../infrastructure/repositories/OrderRepository");
+const StudentDashboardUseCase_1 = require("../../application/useCases/student/StudentDashboardUseCase");
 const courseCategoryRepository = new CourseCategoryRepository_1.CourseCategoryRepository();
 const courseCategoryUseCases = new CourseCategory_1.CourseCategoryUseCases(courseCategoryRepository);
+const courseRepository = new CourseRepository_1.CourseRepository();
+const courseOrderRepository = new OrderRepository_1.OrderRepository();
+const getDashboardUseCase = new StudentDashboardUseCase_1.StudentDashboardUseCase(courseRepository, courseOrderRepository);
 class StudentController {
     constructor() {
         // Register a new student
@@ -165,12 +170,31 @@ class StudentController {
         });
         // Logout student
         this.logout = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            const role = req.params.role;
             try {
-                yield LogoutStudent_1.LogoutStudentUseCase.execute(req, res, role);
+                yield LogoutStudent_1.LogoutStudentUseCase.execute(res);
                 res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
                     success: true,
                     message: SuccessMessageEnum_1.SuccessMessageEnum.LOGOUT_SUCCESS
+                });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        //DAHSBOARD
+        this.getDashboard = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const studentId = req.userId;
+                if (!studentId) {
+                    return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({
+                        success: false,
+                        message: 'Invalid student ID.'
+                    });
+                }
+                const dashboardData = yield getDashboardUseCase.execute(studentId);
+                res.status(200).json({
+                    success: true,
+                    data: dashboardData
                 });
             }
             catch (error) {
@@ -360,9 +384,9 @@ class StudentController {
         this._tutorRepo = new TutorRepository_1.TutorRepository();
         this._tutorSlotRepo = new TutorSlotRepository_1.TutorSlotRepository();
         this._otpRepo = new OTPRepository_1.OTPRepository();
-        this._emailService = new EmailService_1.EmailService();
+        // this._emailService = new EmailService()
         this._jwtService = new JWTService_1.JWTService();
-        this._registerStudentUseCase = new RegisterStudent_1.RegisterStudentUseCase(this._studentRepo, this._emailService);
+        this._registerStudentUseCase = new RegisterStudent_1.RegisterStudentUseCase(this._studentRepo);
         this._verifyOTPUseCase = new VerifyOTP_1.VerifyOTP(this._studentRepo);
         this._loginStudentUseCase = new StudentLogin_1.LoginStudentUseCase(this._studentRepo, this._jwtService);
         this._googleSignInUseCase = new GoogleSignInUseCase_1.GoogleSignInUseCase(this._studentRepo);
@@ -370,27 +394,9 @@ class StudentController {
         this._resetPasswordUseCase = new ResetPassword_1.ResetPasswordUseCase(this._studentRepo);
         this._studentUseCase = new StudentUseCase_1.StudentUseCase(this._studentRepo);
         this._courseCategoryUseCases = new CourseCategory_1.CourseCategoryUseCases(this._courseCategoryRepo);
-        this._resendOTPUseCase = new ResendOTPUseCase_1.ResendOTPUseCase(this._otpRepo, this._emailService);
+        this._resendOTPUseCase = new ResendOTPUseCase_1.ResendOTPUseCase(this._otpRepo);
         this._tutorUseCase = new TutorUseCase_1.TutorUseCase(this._tutorRepo, this._tutorSlotRepo);
-    }
-    //DAHSBOARD
-    getDashboard(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log("Inside getDashboard in student controller");
-            try {
-                const studentId = req.userId;
-                if (!studentId) {
-                    res.status(401).json({ message: 'Unauthorized access' });
-                    return;
-                }
-                const categories = yield courseCategoryUseCases.getAllCategories();
-                res.status(200).json({ categories });
-            }
-            catch (error) {
-                console.error('Error fetching dashboard:', error);
-                res.status(500).json({ message: 'Internal server error' });
-            }
-        });
+        const courseRepo = new CourseRepository_1.CourseRepository();
     }
 }
 exports.StudentController = StudentController;

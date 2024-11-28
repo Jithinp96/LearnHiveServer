@@ -145,9 +145,9 @@ class CourseController {
         });
         this.fetchAllCourses = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const { search, categories, levels } = req.query;
+                const { search, categories, levels, studentId } = req.query;
                 const filters = {
-                    isApproved: false,
+                    isApproved: true,
                     isBlocked: false
                 };
                 // Add search filter
@@ -166,7 +166,7 @@ class CourseController {
                         $in: levels.split(',')
                     };
                 }
-                const courses = yield this._courseUseCase.fetchAllCourse(filters);
+                const courses = yield this._courseUseCase.fetchAllCourse(filters, studentId);
                 res.status(200).json(courses);
             }
             catch (error) {
@@ -207,6 +207,28 @@ class CourseController {
             }
             catch (error) {
                 res.status(500).json({ error: 'Failed to fetch course details' });
+            }
+        });
+        this.fetchStudentCourseProgress = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const studentId = req.userId;
+                if (!studentId) {
+                    return res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({
+                        success: false,
+                        message: ErrorMessagesEnum_1.AuthErrorEnum.INVALID_ID
+                    });
+                }
+                const courseProgress = yield this._courseUseCase.fetchStudentCourseProgress(studentId);
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
+                    success: true,
+                    data: courseProgress,
+                });
+            }
+            catch (error) {
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.INTERNAL_SERVER_ERROR).json({
+                    success: false,
+                    message: "An error occurred while fetching course progress.",
+                });
             }
         });
         this.updateCourseProgress = (req, res) => __awaiter(this, void 0, void 0, function* () {

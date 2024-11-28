@@ -13,28 +13,79 @@ exports.OrderRepository = void 0;
 const CourseOrderModel_1 = require("../database/models/CourseOrderModel");
 const SlotOrderModel_1 = require("../database/models/SlotOrderModel");
 class OrderRepository {
-    getCourseOrderByStudentId(studentId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return CourseOrderModel_1.CourseOrder.find({ studentId })
-                .populate({
-                path: "courseId",
-                select: "title category thumbnailUrl level duration reviews",
-                populate: {
-                    path: 'category',
-                    select: 'name',
-                }
-            })
-                .then((orders) => orders);
+    getCourseOrderByStudentId(studentId_1) {
+        return __awaiter(this, arguments, void 0, function* (studentId, options = { page: 1, limit: 6 }) {
+            const page = options.page || 1;
+            const limit = options.limit || 6;
+            const skip = (page - 1) * limit;
+            // return CourseOrderModel.find({ studentId })
+            // .populate({
+            //   path: "courseId",
+            //   select: "title category thumbnailUrl level duration reviews",
+            //   populate: {
+            //     path: 'category',
+            //     select: 'name',
+            //   }
+            // })
+            // .sort({ 'createdAt': -1 })
+            // .then((orders) => orders as ICourseOrder[]);
+            const [courseOrders, totalOrders] = yield Promise.all([
+                CourseOrderModel_1.CourseOrder.find({ studentId })
+                    .populate({
+                    path: "courseId",
+                    select: "title category thumbnailUrl level duration reviews",
+                    populate: {
+                        path: 'category',
+                        select: 'name',
+                    }
+                })
+                    .sort({ 'createdAt': -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .then((slots) => slots),
+                CourseOrderModel_1.CourseOrder.countDocuments({ studentId })
+            ]);
+            return {
+                courseOrders,
+                totalOrders,
+                totalPages: Math.ceil(totalOrders / limit),
+                currentPage: page
+            };
         });
     }
-    getSlotOrderByStudentId(studentId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return SlotOrderModel_1.SlotOrder.find({ studentId })
-                .populate({
-                path: "slotId",
-                select: "subject level date startTime endTime meetingLink",
-            })
-                .then((slots) => slots);
+    // async getSlotOrderByStudentId(studentId: string): Promise<ISlotOrder[]> {
+    //   const slotOrders = await SlotOrderModel.find({ studentId })
+    //   .populate({
+    //     path: "slotId",
+    //     select: "subject level date startTime endTime meetingLink",
+    //   })
+    //   .sort({ 'createdAt': -1 })
+    //   .then((slots) => slots as ISlotOrder[]);
+    //   return slotOrders
+    // }
+    getSlotOrderByStudentId(studentId_1) {
+        return __awaiter(this, arguments, void 0, function* (studentId, options = { page: 1, limit: 5 }) {
+            const page = options.page || 1;
+            const limit = options.limit || 5;
+            const skip = (page - 1) * limit;
+            const [slotOrders, totalOrders] = yield Promise.all([
+                SlotOrderModel_1.SlotOrder.find({ studentId })
+                    .populate({
+                    path: "slotId",
+                    select: "subject level date startTime endTime meetingLink",
+                })
+                    .sort({ 'createdAt': -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .then((slots) => slots),
+                SlotOrderModel_1.SlotOrder.countDocuments({ studentId })
+            ]);
+            return {
+                slotOrders,
+                totalOrders,
+                totalPages: Math.ceil(totalOrders / limit),
+                currentPage: page
+            };
         });
     }
     getSlotOrderById(slotOrderId) {
@@ -58,6 +109,19 @@ class OrderRepository {
     updateCompletionStatus(studentId, courseId, status) {
         return __awaiter(this, void 0, void 0, function* () {
             yield CourseOrderModel_1.CourseOrder.updateOne({ studentId, courseId }, { completionStatus: status });
+        });
+    }
+    getTopPurchasedCourses(limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return CourseOrderModel_1.CourseOrder.aggregate([
+                { $match: { paymentStatus: 'Completed' } },
+                { $group: { _id: "$courseId", count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: limit },
+                { $lookup: { from: "courses", localField: "_id", foreignField: "_id", as: "course" } },
+                { $unwind: "$course" },
+                { $project: { _id: 0, course: 1 } }
+            ]);
         });
     }
 }

@@ -41,5 +41,11 @@ class TutorSlotRepository {
             yield TutorStotModel_1.TutorSlotModel.findByIdAndUpdate(slotId, updateData, { new: true });
         });
     }
+    findByMeetingId(meetingId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const slot = yield TutorStotModel_1.TutorSlotModel.findOne({ meetingId }).exec();
+            return slot ? new TutorStotModel_1.TutorSlotModel(slot) : null;
+        });
+    }
 }
 exports.TutorSlotRepository = TutorSlotRepository;

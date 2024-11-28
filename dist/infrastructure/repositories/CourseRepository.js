@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CourseRepository = void 0;
 const CourseModel_1 = require("../database/models/CourseModel");
+const CourseOrderModel_1 = require("../database/models/CourseOrderModel");
 const CourseProgressSchema_1 = require("../database/models/CourseProgressSchema");
 class CourseRepository {
     addCourse(course) {
@@ -37,9 +38,16 @@ class CourseRepository {
             }
         });
     }
-    findAllCourse(filters) {
+    findAllCourse(filters, studentId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                if (studentId) {
+                    const purchasedCourseIds = yield CourseOrderModel_1.CourseOrder.find({
+                        studentId: studentId,
+                        // status: 'completed' 
+                    }).distinct('courseId');
+                    filters._id = { $nin: purchasedCourseIds };
+                }
                 const courses = yield CourseModel_1.CourseModel.find(filters)
                     .populate('category', 'name');
                 return courses;
@@ -106,6 +114,24 @@ class CourseRepository {
             }
         });
     }
+    findStudentCourseProgress(studentId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const courseProgress = yield CourseProgressSchema_1.CourseProgress.find({ studentId: studentId })
+                    .populate("courseId", "title thumbnailUrl")
+                    .exec();
+                if (!courseProgress || courseProgress.length === 0) {
+                    return null;
+                }
+                // console.log("courseProgress: ", courseProgress);
+                return courseProgress;
+            }
+            catch (error) {
+                console.error("Error fetching course progress from course repo:", error);
+                throw new Error("Failed to fetch course progress.");
+            }
+        });
+    }
     approveCourse(courseId) {
         return __awaiter(this, void 0, void 0, function* () {
             yield CourseModel_1.CourseModel.findByIdAndUpdate(courseId, {
@@ -117,6 +143,58 @@ class CourseRepository {
     toggleBlockStatus(courseId, status) {
         return __awaiter(this, void 0, void 0, function* () {
             yield CourseModel_1.CourseModel.findByIdAndUpdate(courseId, { isBlocked: status });
+        });
+    }
+    ///////////////////////////////////////////////
+    getNewCourses(limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const courses = yield CourseModel_1.CourseModel.find({ isListed: true })
+                    .sort({ createdAt: -1 })
+                    .limit(limit);
+                return courses.length > 0 ? courses : null;
+            }
+            catch (error) {
+                console.error('Error fetching new courses:', error);
+                return null;
+            }
+        });
+    }
+    getTopRatedCourses(limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const courses = yield CourseModel_1.CourseModel.aggregate([
+                    { $match: { isListed: true } },
+                    { $unwind: "$reviews" },
+                    { $group: { _id: "$_id", averageRating: { $avg: "$reviews.rating" }, doc: { $first: "$$ROOT" } } },
+                    { $sort: { averageRating: -1 } },
+                    { $limit: limit },
+                    { $replaceRoot: { newRoot: "$doc" } }
+                ]);
+                return courses.length > 0 ? courses : null;
+            }
+            catch (error) {
+                console.error('Error fetching top-rated courses:', error);
+                return null;
+            }
+        });
+    }
+    getSuggestedCourses(studentId, limit) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const purchasedCourses = yield CourseOrderModel_1.CourseOrder.find({ studentId, paymentStatus: 'Completed' }).populate('courseId');
+                const purchasedTags = purchasedCourses.flatMap((order) => { var _a; return ((_a = order.courseId) === null || _a === void 0 ? void 0 : _a.tags) || []; });
+                if (purchasedTags.length === 0) {
+                    return null; // No relevant tags found
+                }
+                const courses = yield CourseModel_1.CourseModel.find({ tags: { $in: purchasedTags }, isListed: true })
+                    .limit(limit);
+                return courses.length > 0 ? courses : null;
+            }
+            catch (error) {
+                console.error('Error fetching suggested courses:', error);
+                return null;
+            }
         });
     }
 }

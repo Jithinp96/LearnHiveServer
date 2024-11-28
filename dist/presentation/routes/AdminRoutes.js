@@ -22,7 +22,7 @@ const studentRepo = new StudentRepository_1.StudentRepository();
 const tutorRepo = new TutorRepository_1.TutorRepository();
 const authService = new AuthService_1.AuthService(studentRepo, tutorRepo);
 adminRoutes.post('/login', (req, res) => adminController.login(req, res));
-adminRoutes.post('/logout/:role', adminController.logout);
+adminRoutes.post('/logout', adminController.logout);
 adminRoutes.get('/dashboard', (0, AuthMiddleware_1.default)(authService), adminController.getAdminDashboard);
 adminRoutes.get('/students', (0, AuthMiddleware_1.default)(authService), (req, res) => adminController.getAllStudents(req, res));
 adminRoutes.get('/student/:id', (0, AuthMiddleware_1.default)(authService), (req, res) => adminController.getStudentById(req, res));

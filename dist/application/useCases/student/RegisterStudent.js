@@ -20,9 +20,8 @@ const StudentError_1 = require("../../../domain/errors/StudentError");
 const OTPModel_1 = require("../../../infrastructure/database/models/OTPModel");
 const EmailServiceTutor_1 = require("../../../infrastructure/services/EmailServiceTutor");
 class RegisterStudentUseCase {
-    constructor(_studentRepo, _emailService) {
+    constructor(_studentRepo) {
         this._studentRepo = _studentRepo;
-        this._emailService = _emailService;
     }
     execute(data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -50,7 +49,6 @@ class RegisterStudentUseCase {
                 const expiredAt = new Date(Date.now() + 60000);
                 yield OTPModel_1.OTPModel.create({ email: data.email, otp, expiredAt });
                 yield (0, EmailServiceTutor_1.sendOTPEmail)(data.email, otp);
-                // await this._emailService.send(data.email, `Your OTP for registration is: ${otp}`);
             }
             catch (error) {
                 if (error instanceof StudentError_1.StudentAlreadyExistsError) {

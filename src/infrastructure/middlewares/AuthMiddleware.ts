@@ -10,6 +10,8 @@ interface IAuthRequest extends Request {
 }
 
 const AuthMiddleware = (authService: IAuthService) => {
+    console.log("Reached Auth middleware");
+    
     return async (req: IAuthRequest, res: Response, next: NextFunction) => {
         try {
             const refreshToken = req.cookies.refreshToken;

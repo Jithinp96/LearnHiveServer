@@ -34,7 +34,7 @@ class ForgotPassword {
                 const resetLink = `${process.env.CORSURL}/tutor/reset-password?token=${forgotPasswordToken}`;
                 const subject = 'Password Reset Request';
                 const body = `To reset your password, please click the following link: ${resetLink}`;
-                yield (0, SendEmail_1.sendEmail)(tutor.email, subject, body);
+                yield (0, SendEmail_1.sendEmail)(tutor.email, resetLink);
                 res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({ message: 'Password reset link sent to your email.' });
                 return;
             }

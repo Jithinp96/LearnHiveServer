@@ -35,7 +35,6 @@ const TutorDashboardRepository_1 = require("../../infrastructure/repositories/Tu
 const jwt_decode_1 = require("jwt-decode");
 const SuccessMessageEnum_1 = require("../../shared/enums/SuccessMessageEnum");
 const GoogleSignInUseCase_1 = require("../../application/useCases/tutor/GoogleSignInUseCase");
-const EmailService_1 = require("../../infrastructure/services/EmailService");
 class TutorController {
     constructor() {
         //REGISTER TUTOR
@@ -164,9 +163,17 @@ class TutorController {
                 res.status(HttpStatusEnum_1.HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: 'Internal Server Error' });
             }
         });
-        this.logout = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const role = req.params.role;
-            return LogoutTutorUseCase_1.LogoutTutorUseCase.execute(req, res, role);
+        this.logout = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield LogoutTutorUseCase_1.LogoutTutorUseCase.execute(res);
+                res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
+                    success: true,
+                    message: SuccessMessageEnum_1.SuccessMessageEnum.LOGOUT_SUCCESS
+                });
+            }
+            catch (error) {
+                next(error);
+            }
         });
         this.getDashboard = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const tutorId = req.userId;
@@ -437,8 +444,8 @@ class TutorController {
         this._tutorSlotPreferenceRepository = new TutorSlotPreferenceRepository_1.TutorSlotPreferenceRepository();
         this._tutorDashboardRepo = new TutorDashboardRepository_1.TutorDashboardRepository();
         this._jwtService = new JWTService_1.JWTService();
-        this._emailService = new EmailService_1.EmailService();
-        this._registerTutor = new RegisterTutor_1.RegisterTutor(this._tutorRepo, this._emailService);
+        // this._emailService = new EmailService()
+        this._registerTutor = new RegisterTutor_1.RegisterTutor(this._tutorRepo);
         this._verifyOTPUseCase = new VerifyOTP_1.VerifyOTPTutor(this._tutorRepo);
         this._loginTutorUseCase = new TutorLogin_1.LoginTutorUseCase(this._tutorRepo, this._jwtService);
         this._googleSignInUseCase = new GoogleSignInUseCase_1.GoogleSignInUseCase(this._tutorRepo);

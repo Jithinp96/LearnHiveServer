@@ -15,32 +15,67 @@ const OrderRepository_1 = require("../../infrastructure/repositories/OrderReposi
 const HttpStatusEnum_1 = require("../../shared/enums/HttpStatusEnum");
 class OrderController {
     constructor() {
+        // public getCourseOrdersByStudent = async (req: AuthenticatedRequest, res: Response) => {
+        //     const studentId = req.userId;
+        //     if (!studentId) {
+        //         return res.status(HttpStatusEnum.BAD_REQUEST).json({ message: "Student ID is required" });
+        //     }
+        //     try {
+        //         const orders = await this._orderUseCase.getCourseOrders(studentId);
+        //         return res.status(HttpStatusEnum.OK).json(orders);
+        //     } catch (error) {
+        //         console.error("Error fetching course orders:", error);
+        //         return res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch course orders", error });
+        //     }
+        // }
         this.getCourseOrdersByStudent = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const studentId = req.userId;
+            const page = req.query.page ? parseInt(req.query.page) : 1;
+            const limit = req.query.limit ? parseInt(req.query.limit) : 6;
             if (!studentId) {
                 return res.status(HttpStatusEnum_1.HttpStatusEnum.BAD_REQUEST).json({ message: "Student ID is required" });
             }
             try {
-                const orders = yield this._orderUseCase.getCourseOrders(studentId);
-                return res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json(orders);
+                const { courseOrders, totalOrders, totalPages, currentPage } = yield this._orderUseCase.getCourseOrders(studentId, page, limit);
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
+                    courseOrders,
+                    totalOrders,
+                    totalPages,
+                    currentPage
+                });
             }
             catch (error) {
                 console.error("Error fetching course orders:", error);
-                return res.status(HttpStatusEnum_1.HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch course orders", error });
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.INTERNAL_SERVER_ERROR).json({
+                    message: "Failed to fetch course orders",
+                    error
+                });
             }
         });
         this.getSlotOrdersByStudent = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const studentId = req.userId;
+            const page = req.query.page ? parseInt(req.query.page) : 1;
+            const limit = req.query.limit ? parseInt(req.query.limit) : 5;
             if (!studentId) {
-                return res.status(HttpStatusEnum_1.HttpStatusEnum.BAD_REQUEST).json({ message: "Student ID is required" });
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.BAD_REQUEST).json({
+                    message: "Student ID is required"
+                });
             }
             try {
-                const orders = yield this._orderUseCase.getSlotOrders(studentId);
-                return res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json(orders);
+                const { slotOrders, totalOrders, totalPages, currentPage } = yield this._orderUseCase.getSlotOrders(studentId, page, limit);
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
+                    slotOrders,
+                    totalOrders,
+                    totalPages,
+                    currentPage
+                });
             }
             catch (error) {
                 console.error("Error fetching slot orders:", error);
-                return res.status(HttpStatusEnum_1.HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch slot orders", error });
+                return res.status(HttpStatusEnum_1.HttpStatusEnum.INTERNAL_SERVER_ERROR).json({
+                    message: "Failed to fetch slot orders",
+                    error
+                });
             }
         });
         const orderRepository = new OrderRepository_1.OrderRepository;
@@ -48,3 +83,16 @@ class OrderController {
     }
 }
 exports.OrderController = OrderController;
+// public getSlotOrdersByStudent = async (req: AuthenticatedRequest, res: Response) => {
+//     const studentId = req.userId;
+//     if (!studentId) {
+//         return res.status(HttpStatusEnum.BAD_REQUEST).json({ message: "Student ID is required" });
+//     }
+//     try {
+//         const orders = await this._orderUseCase.getSlotOrders(studentId);
+//         return res.status(HttpStatusEnum.OK).json(orders);
+//     } catch (error) {
+//         console.error("Error fetching slot orders:", error);
+//         return res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch slot orders", error});
+//     }
+// }

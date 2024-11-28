@@ -28,9 +28,9 @@ export class CourseUseCase {
         return video;
     }
 
-    async fetchAllCourse(filters: any): Promise<ICourse[]> {
+    async fetchAllCourse(filters: any, studentId?: string): Promise<ICourse[]> {
         try {
-            return this._courseRepository.findAllCourse(filters);
+            return this._courseRepository.findAllCourse(filters, studentId);
         } catch (error) {
             console.error('Error fetching courses:', error);
             throw new Error('Failed to fetch courses');

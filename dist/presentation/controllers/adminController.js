@@ -20,6 +20,7 @@ const TutorRepository_1 = require("../../infrastructure/repositories/TutorReposi
 const LogoutAdminUseCase_1 = require("../../application/useCases/admin/LogoutAdminUseCase");
 const GetAdminDashboardUseCase_1 = require("../../application/useCases/admin/GetAdminDashboardUseCase");
 const AdminDashboardRepository_1 = require("../../infrastructure/repositories/AdminDashboardRepository");
+const SuccessMessageEnum_1 = require("../../shared/enums/SuccessMessageEnum");
 const studentRepository = new StudentRepository_1.StudentRepository();
 const tutorRepository = new TutorRepository_1.TutorRepository();
 const adminDashboardRepository = new AdminDashboardRepository_1.AdminDashboardRepository();
@@ -42,9 +43,17 @@ class AdminController {
                 res.status(HttpStatusEnum_1.HttpStatusEnum.UNAUTHORIZED).json({ success: false, error });
             }
         });
-        this.logout = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const role = req.params.role;
-            return LogoutAdminUseCase_1.LogoutAdminUseCase.execute(req, res);
+        this.logout = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield LogoutAdminUseCase_1.LogoutAdminUseCase.execute(res);
+                res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json({
+                    success: true,
+                    message: SuccessMessageEnum_1.SuccessMessageEnum.LOGOUT_SUCCESS
+                });
+            }
+            catch (error) {
+                next(error);
+            }
         });
         this.getAdminDashboard = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {

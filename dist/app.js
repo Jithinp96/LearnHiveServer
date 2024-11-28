@@ -14,9 +14,10 @@ const StudentRoutes_1 = __importDefault(require("./presentation/routes/StudentRo
 const TutorRoutes_1 = __importDefault(require("./presentation/routes/TutorRoutes"));
 const AdminRoutes_1 = __importDefault(require("./presentation/routes/AdminRoutes"));
 const MessageRoutes_1 = __importDefault(require("./presentation/routes/MessageRoutes"));
+const VideoCallRoutes_1 = __importDefault(require("./presentation/routes/VideoCallRoutes"));
+const AssessmentRoutes_1 = __importDefault(require("./presentation/routes/AssessmentRoutes"));
 const ErrorHandler_1 = require("./infrastructure/middlewares/ErrorHandler");
 const CronScheduler_1 = require("./infrastructure/services/CronScheduler");
-const AssessmentRoutes_1 = __importDefault(require("./presentation/routes/AssessmentRoutes"));
 const socket_1 = require("./infrastructure/config/socket");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -33,7 +34,6 @@ app.use((req, res, next) => {
 });
 const corsOptions = {
     origin: `${process.env.CORSURL}`,
-    // origin: 'https://learnhive.vercel.app',
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
 };
@@ -45,6 +45,7 @@ app.use("/api/tutor", TutorRoutes_1.default);
 app.use("/api/admin", AdminRoutes_1.default);
 app.use("/api/chat", MessageRoutes_1.default);
 app.use("/api/assessment", AssessmentRoutes_1.default);
+app.use("/api/video-call", VideoCallRoutes_1.default);
 app.use(ErrorHandler_1.errorHandler);
 mongoose_1.default
     .connect(process.env.MONGO_URI)
