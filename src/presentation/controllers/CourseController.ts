@@ -85,11 +85,13 @@ export class CourseController {
     public toggleCourseStatus = async(req: Request, res: Response) => {
         const { courseId } = req.params;
         const { isBlocked } = req.body; 
+        const { isListed } = req.body; 
         
         try {
-            await this._courseUseCase.toggleCourseStatus(courseId, isBlocked)
+            await this._courseUseCase.toggleCourseStatus(courseId, isBlocked, isListed)
+            res.status(200).json({ message: 'Course status changed successfully' });
         } catch (error) {
-            
+            res.status(500).json({ message: 'Failed to change course status!' });
         }
         
     }

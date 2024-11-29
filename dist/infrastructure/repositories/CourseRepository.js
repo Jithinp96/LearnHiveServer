@@ -140,9 +140,9 @@ class CourseRepository {
             });
         });
     }
-    toggleBlockStatus(courseId, status) {
+    toggleBlockStatus(courseId, isBlocked, isListed) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield CourseModel_1.CourseModel.findByIdAndUpdate(courseId, { isBlocked: status });
+            yield CourseModel_1.CourseModel.findByIdAndUpdate(courseId, { isBlocked: isBlocked, isListed });
         });
     }
     ///////////////////////////////////////////////

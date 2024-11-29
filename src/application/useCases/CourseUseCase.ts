@@ -82,13 +82,13 @@ export class CourseUseCase {
         await this._courseRepository.approveCourse(courseId);
     }
 
-    async toggleCourseStatus(courseId: string, status: boolean): Promise<void> {
+    async toggleCourseStatus(courseId: string, isBlocked: boolean, isListed: boolean): Promise<void> {
         const course = await this._courseRepository.findCourseById(courseId);
-
+        
         if (!course) {
             throw new Error('Course not found');
         }
 
-        await this._courseRepository.toggleBlockStatus(courseId, !status);
+        await this._courseRepository.toggleBlockStatus(courseId, isBlocked, isListed);
     }
 }

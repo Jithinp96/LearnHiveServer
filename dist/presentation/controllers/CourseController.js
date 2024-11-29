@@ -73,10 +73,13 @@ class CourseController {
         this.toggleCourseStatus = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { courseId } = req.params;
             const { isBlocked } = req.body;
+            const { isListed } = req.body;
             try {
-                yield this._courseUseCase.toggleCourseStatus(courseId, isBlocked);
+                yield this._courseUseCase.toggleCourseStatus(courseId, isBlocked, isListed);
+                res.status(200).json({ message: 'Course status changed successfully' });
             }
             catch (error) {
+                res.status(500).json({ message: 'Failed to change course status!' });
             }
         });
         this.uploadThumbnail = (req, res) => __awaiter(this, void 0, void 0, function* () {

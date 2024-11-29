@@ -96,13 +96,13 @@ class CourseUseCase {
             yield this._courseRepository.approveCourse(courseId);
         });
     }
-    toggleCourseStatus(courseId, status) {
+    toggleCourseStatus(courseId, isBlocked, isListed) {
         return __awaiter(this, void 0, void 0, function* () {
             const course = yield this._courseRepository.findCourseById(courseId);
             if (!course) {
                 throw new Error('Course not found');
             }
-            yield this._courseRepository.toggleBlockStatus(courseId, !status);
+            yield this._courseRepository.toggleBlockStatus(courseId, isBlocked, isListed);
         });
     }
 }

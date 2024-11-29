@@ -10,7 +10,7 @@ export interface ICourseRepository {
     findAllCourseForAdmin(): Promise<ICourse[]>;
     findCourseById(courseId: string): Promise<ICourse | null>;
     approveCourse(courseId: string): Promise<void>;
-    toggleBlockStatus(courseId: string, status: boolean): Promise<void>;
+    toggleBlockStatus(courseId: string, isBlocked: boolean, isListed: boolean): Promise<void>;
     findStudentCourseProgress(studentId: string): Promise<any | null>;
 
     getNewCourses(limit: number): Promise<CourseDocument[] | null>;

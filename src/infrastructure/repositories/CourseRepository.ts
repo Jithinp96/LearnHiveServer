@@ -129,8 +129,8 @@ export class CourseRepository implements ICourseRepository {
         });
     }
     
-    async toggleBlockStatus(courseId: string, status: boolean): Promise<void> {
-        await CourseModel.findByIdAndUpdate(courseId, { isBlocked: status });
+    async toggleBlockStatus(courseId: string, isBlocked: boolean, isListed: boolean): Promise<void> {
+        await CourseModel.findByIdAndUpdate(courseId, { isBlocked: isBlocked, isListed });
     }
 
 
