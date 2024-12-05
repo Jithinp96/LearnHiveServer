@@ -4,7 +4,7 @@ import { IAssessmentRepository } from "../../../domain/interfaces/IAssessmentRep
 export class FetchAssessmentsForStudentUseCase {
   constructor(private _assessmentRepo: IAssessmentRepository) {}
 
-  async execute(studentId: string): Promise<IAssessment[]> {
+  async execute(studentId: string): Promise<IAssessment[] | null> {
     try {
       return await this._assessmentRepo.getAssessmentsForStudent(studentId);
     } catch (error) {

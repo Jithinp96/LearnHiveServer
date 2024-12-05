@@ -6,6 +6,6 @@ export interface IAssessmentRepository {
     getAssessmentsByTutor(tutorId: string): Promise<IAssessment[]>;
     // submitStudentAssessment(studentAssessment: IStudentAssessment): Promise<IStudentAssessment>;
     // getStudentAssessments(studentId: string): Promise<IStudentAssessment[]>;
-    getAssessmentsForStudent(studentId: string): Promise<IAssessment[]>;
+    getAssessmentsForStudent(studentId: string): Promise<IAssessment[] | null>;
     getAssessmentById(assessmentId: string): Promise<IAssessment | null>;
 }

@@ -34,8 +34,6 @@ export class AssessmentController {
   }
   
   public createAssessment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    console.log("Reached create assessment controller");
-    
     try {
       const tutorId = req.userId;
       if (!tutorId) {
@@ -68,8 +66,6 @@ export class AssessmentController {
   };
 
   public fetchAssessmentsForStudent = async (req: AuthenticatedRequest, res: Response) => {
-    console.log("Reached fetchAssessmentsForStudent controller");
-
     try {
       const studentId = req.userId;
       if (!studentId) {
@@ -86,8 +82,6 @@ export class AssessmentController {
   };
 
   public fetchAssessmentById = async (req: Request, res: Response) => {
-    console.log("Reached fetchAssessmentById controller");
-
     try {
       const { assessmentId } = req.params;
       console.log("assessmentId from fetch assessment by id controller: ", assessmentId);
@@ -112,12 +106,13 @@ export class AssessmentController {
   };
 
   public submitAssessment = async (req: AuthenticatedRequest, res: Response) => {
+    console.log("Inside submitAssessment in assessment controller");
+    
     try {
       const studentId = req.userId;
   
       if (!studentId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return res.status(401).json({ error: 'Unauthorized' });
       }
   
       const { assessmentId } = req.params
@@ -130,7 +125,16 @@ export class AssessmentController {
       };
       
       const submission = await this._submitStudentAssessmentUseCase.execute(submissionData);
-      res.status(HttpStatusEnum.OK).json(submission);
+      console.log("submission: ", submission);
+      
+      if (submission) {
+        return res.status(HttpStatusEnum.OK).json(submission);
+      } else {
+        return res.status(HttpStatusEnum.BAD_REQUEST).json({ 
+          error: 'Assessment not passed',
+          message: 'You did not meet the passing criteria for this assessment.'
+        });
+      }
     } catch (error) {
       console.error("Error in submitting assessment:", error);
       res.status(HttpStatusEnum.INTERNAL_SERVER_ERROR).json({ error: 'Failed to submit assessment' });
@@ -147,20 +151,18 @@ export class AssessmentController {
       }
   
       const { assessmentId } = req.params
-
-      const assessmentResult = this._fetchAssessmentResultByIdUseCase.execute(assessmentId);
+      
+      const assessmentResult = await this._fetchAssessmentResultByIdUseCase.execute(assessmentId);
 
       if (!assessmentResult) {
         return res.status(404).json({ error: 'Assessment result not found' });
       }
-
-      res.json(assessmentResult);
+      return res.status(200).json(assessmentResult);
     } catch (error) {
       console.error("Error fetching assessment result:", error);
       res.status(500).json({ error: 'Failed to fetch assessment result' });
     }
   }
-  
   
     // submitAssessment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     //   try {

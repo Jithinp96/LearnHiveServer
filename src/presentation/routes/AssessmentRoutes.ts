@@ -18,7 +18,8 @@ assessmentRoute.get('/', AuthMiddleware(authService), assessmentController.fetch
 assessmentRoute.get('/assessment-list', AuthMiddleware(authService), assessmentController.fetchAssessmentsForStudent);
 assessmentRoute.get('/:assessmentId', AuthMiddleware(authService), assessmentController.fetchAssessmentById)
 assessmentRoute.post('/:assessmentId/submit', AuthMiddleware(authService), assessmentController.submitAssessment)
-assessmentRoute.get('/assessment-result/:assessmentId', AuthMiddleware(authService), assessmentController.fetchAssessmentResultById)
+assessmentRoute.get('/assessment-result/:assessmentId', AuthMiddleware(authService), assessmentController.fetchAssessmentResultById);
+assessmentRoute.get('/certificate/:assessmentId', AuthMiddleware(authService), assessmentController.fetchAssessmentResultById)
 // assessmentRoute.post('/submit', AuthMiddleware(authService), assessmentController.submitAssessment);
 
 export default assessmentRoute;

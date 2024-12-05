@@ -2,12 +2,11 @@ import { IAssessment } from "../../domain/entities/IAssessment";
 import { IAssessmentRepository } from "../../domain/interfaces/IAssessmentRepository";
 import { Assessment } from "../database/models/AssessmentModel";
 import { CourseOrder } from "../database/models/CourseOrderModel";
+import { StudentAssessmentModel } from "../database/models/StudentAssessmentModel";
 
 export class AssessmentRepository implements IAssessmentRepository {
   async createAssessment(assessment: IAssessment): Promise<IAssessment> {
     try {
-      console.log("Inside create assessment in assessment Repository");
-      
       const newAssessment = new Assessment(assessment);
       return await newAssessment.save();
     } catch (error) {
@@ -26,21 +25,56 @@ export class AssessmentRepository implements IAssessmentRepository {
     return assessments
   }
 
-  async getAssessmentsForStudent(studentId: string): Promise<IAssessment[]> {
+  async getAssessmentsForStudent(studentId: string): Promise<IAssessment[] | null> {
     try {
-      // Find courses purchased by the student and are active
-      const purchasedCourses = await CourseOrder.find({
+      const completedCourses = await CourseOrder.find({
         studentId,
         isActive: true,
-        paymentStatus: 'Completed'
+        paymentStatus: 'Completed',
+        completionStatus: 'Completed'
       }).select('courseId');
 
-      const courseIds = purchasedCourses.map(order => order.courseId);
+      const completedCourseIds  = completedCourses.map(order => order.courseId);
 
-      // Fetch assessments linked to these courses
-      const assessments =  await Assessment.find({ courseId: { $in: courseIds } })
-        .populate('courseId', 'title');
-      return assessments
+      if (completedCourseIds.length === 0) {
+        return [];
+      }
+      
+      const assessments = await Assessment.find({ courseId: { $in: completedCourseIds } })
+        .populate('courseId', 'title')
+        .lean(); // Convert to plain JavaScript object
+      
+      const assessmentIds = assessments.map((assessment) => assessment._id);
+      
+      // Find student's assessment attempts
+      const studentAssessments = await StudentAssessmentModel.find({
+        studentId,
+        assessmentId: { $in: assessmentIds }
+      }).lean();
+
+      // Map assessments with their status
+      const assessmentsWithStatus = assessments.map(assessment => {
+        // Find corresponding student assessment
+        const studentAssessment = studentAssessments.find(sa => 
+          sa.assessmentId.toString() === assessment._id.toString()
+        );
+
+        // Determine status
+        let status: 'not-started' | 'in-progress' | 'completed' = 'not-started';
+        if (studentAssessment) {
+          status = studentAssessment.status === 'Completed' 
+            ? 'completed' 
+            : 'in-progress';
+        }
+
+        return {
+          ...assessment,
+          status,
+          questions: assessment.questions || [], // Ensure questions array exists
+        };
+      });
+
+      return assessmentsWithStatus;
     } catch (error) {
       console.error("Error fetching assessments for student:", error);
       throw new Error("Failed to fetch assessments for student");
