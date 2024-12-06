@@ -22,7 +22,6 @@ const FetchAssessmentResultUseCase_1 = require("../../application/useCases/asses
 class AssessmentController {
     constructor() {
         this.createAssessment = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Reached create assessment controller");
             try {
                 const tutorId = req.userId;
                 if (!tutorId) {
@@ -53,7 +52,6 @@ class AssessmentController {
             }
         });
         this.fetchAssessmentsForStudent = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Reached fetchAssessmentsForStudent controller");
             try {
                 const studentId = req.userId;
                 if (!studentId) {
@@ -69,7 +67,6 @@ class AssessmentController {
             }
         });
         this.fetchAssessmentById = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log("Reached fetchAssessmentById controller");
             try {
                 const { assessmentId } = req.params;
                 console.log("assessmentId from fetch assessment by id controller: ", assessmentId);
@@ -90,11 +87,11 @@ class AssessmentController {
             }
         });
         this.submitAssessment = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            console.log("Inside submitAssessment in assessment controller");
             try {
                 const studentId = req.userId;
                 if (!studentId) {
-                    res.status(401).json({ error: 'Unauthorized' });
-                    return;
+                    return res.status(401).json({ error: 'Unauthorized' });
                 }
                 const { assessmentId } = req.params;
                 const { responses } = req.body;
@@ -104,7 +101,16 @@ class AssessmentController {
                     responses
                 };
                 const submission = yield this._submitStudentAssessmentUseCase.execute(submissionData);
-                res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json(submission);
+                console.log("submission: ", submission);
+                if (submission) {
+                    return res.status(HttpStatusEnum_1.HttpStatusEnum.OK).json(submission);
+                }
+                else {
+                    return res.status(HttpStatusEnum_1.HttpStatusEnum.BAD_REQUEST).json({
+                        error: 'Assessment not passed',
+                        message: 'You did not meet the passing criteria for this assessment.'
+                    });
+                }
             }
             catch (error) {
                 console.error("Error in submitting assessment:", error);
@@ -119,11 +125,11 @@ class AssessmentController {
                     return;
                 }
                 const { assessmentId } = req.params;
-                const assessmentResult = this._fetchAssessmentResultByIdUseCase.execute(assessmentId);
+                const assessmentResult = yield this._fetchAssessmentResultByIdUseCase.execute(assessmentId);
                 if (!assessmentResult) {
                     return res.status(404).json({ error: 'Assessment result not found' });
                 }
-                res.json(assessmentResult);
+                return res.status(200).json(assessmentResult);
             }
             catch (error) {
                 console.error("Error fetching assessment result:", error);

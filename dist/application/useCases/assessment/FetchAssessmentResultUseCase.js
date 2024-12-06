@@ -17,7 +17,6 @@ class FetchAssessmentResultByIdUseCase {
     execute(assessmentId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("Fetching assessment result for ID:", assessmentId); // Log assessmentId
                 const assessmentResult = yield this._studentAssessmentRepo.getAssessmentResultById(assessmentId);
                 if (!assessmentResult) {
                     console.error("Assessment result not found for ID:", assessmentId);

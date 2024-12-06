@@ -12,11 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssessmentRepository = void 0;
 const AssessmentModel_1 = require("../database/models/AssessmentModel");
 const CourseOrderModel_1 = require("../database/models/CourseOrderModel");
+const StudentAssessmentModel_1 = require("../database/models/StudentAssessmentModel");
 class AssessmentRepository {
     createAssessment(assessment) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log("Inside create assessment in assessment Repository");
                 const newAssessment = new AssessmentModel_1.Assessment(assessment);
                 return yield newAssessment.save();
             }
@@ -41,17 +41,39 @@ class AssessmentRepository {
     getAssessmentsForStudent(studentId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // Find courses purchased by the student and are active
-                const purchasedCourses = yield CourseOrderModel_1.CourseOrder.find({
+                const completedCourses = yield CourseOrderModel_1.CourseOrder.find({
                     studentId,
                     isActive: true,
-                    paymentStatus: 'Completed'
+                    paymentStatus: 'Completed',
+                    completionStatus: 'Completed'
                 }).select('courseId');
-                const courseIds = purchasedCourses.map(order => order.courseId);
-                // Fetch assessments linked to these courses
-                const assessments = yield AssessmentModel_1.Assessment.find({ courseId: { $in: courseIds } })
-                    .populate('courseId', 'title');
-                return assessments;
+                const completedCourseIds = completedCourses.map(order => order.courseId);
+                if (completedCourseIds.length === 0) {
+                    return [];
+                }
+                const assessments = yield AssessmentModel_1.Assessment.find({ courseId: { $in: completedCourseIds } })
+                    .populate('courseId', 'title')
+                    .lean(); // Convert to plain JavaScript object
+                const assessmentIds = assessments.map((assessment) => assessment._id);
+                // Find student's assessment attempts
+                const studentAssessments = yield StudentAssessmentModel_1.StudentAssessmentModel.find({
+                    studentId,
+                    assessmentId: { $in: assessmentIds }
+                }).lean();
+                // Map assessments with their status
+                const assessmentsWithStatus = assessments.map(assessment => {
+                    // Find corresponding student assessment
+                    const studentAssessment = studentAssessments.find(sa => sa.assessmentId.toString() === assessment._id.toString());
+                    // Determine status
+                    let status = 'not-started';
+                    if (studentAssessment) {
+                        status = studentAssessment.status === 'Completed'
+                            ? 'completed'
+                            : 'in-progress';
+                    }
+                    return Object.assign(Object.assign({}, assessment), { status, questions: assessment.questions || [] });
+                });
+                return assessmentsWithStatus;
             }
             catch (error) {
                 console.error("Error fetching assessments for student:", error);

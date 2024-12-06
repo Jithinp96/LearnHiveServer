@@ -16,7 +16,6 @@ class CreateAssessmentUseCase {
     }
     execute(assessmentData, tutorId) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("Reached create Assessment service");
             const assessment = Object.assign(Object.assign({}, assessmentData), { tutorId });
             return yield this._assessmentRepo.createAssessment(assessment);
         });

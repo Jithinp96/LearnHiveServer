@@ -27,21 +27,31 @@ class SubmitStudentAssessmentUseCase {
                 throw new Error("Assessment not found");
             }
             let score = 0;
+            const totalMarks = assessment.questions.reduce((sum, q) => sum + q.marks, 0);
             for (const response of responsesArray) {
                 const question = assessment.questions.find(q => q._id.toString() === response.questionId);
                 if (question && question.correctOption === response.selectedOption) {
                     score += question.marks;
                 }
             }
-            const finalSubmission = {
-                studentId,
-                assessmentId,
-                responses: responsesArray,
-                score,
-                status: 'Completed',
-                submittedDate: new Date()
-            };
-            return yield this._studentAssessmentRepo.submitAssessment(finalSubmission);
+            // Calculate score percentage
+            const scorePercentage = (score / totalMarks) * 100;
+            // Check if the student has passed
+            const hasPassed = scorePercentage >= assessment.passingScore;
+            // Only create and save if student has passed
+            if (hasPassed) {
+                const finalSubmission = {
+                    studentId,
+                    assessmentId,
+                    responses: responsesArray,
+                    score,
+                    status: 'Completed',
+                    submittedDate: new Date()
+                };
+                return yield this._studentAssessmentRepo.submitAssessment(finalSubmission);
+            }
+            // Return null if student has not passed
+            return null;
         });
     }
 }
